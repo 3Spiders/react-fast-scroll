@@ -1,0 +1,65 @@
+@scrollHeight: 50px;
+
+.scroll {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 0;
+}
+
+.scrollList {
+  position: relative;
+}
+
+.upWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  color: #999999;
+  height: @scrollHeight;
+  font-size: 14px;
+  position: relative;
+}
+
+.upBeforeTrigger,
+.upAfterTrigger,
+.upLoading {
+  width: 100%;
+  text-align: center;
+  display: none;
+}
+
+.upBeforeTrigger {
+  color: rgb(2, 153, 255);
+}
+
+.downWrapper {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  top: -@scrollHeight;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: @scrollHeight;
+  color: #999999;
+  transition: all;
+  font-size: 14px;
+  z-index: -1;
+}
+
+.downLoading,
+.downBeforeTrigger {
+  width: 100%;
+  text-align: center;
+}
+
+.downLoading {
+  display: none;
+}
+
+.downBeforeTrigger {
+  display: block;
+}
