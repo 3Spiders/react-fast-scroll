@@ -1,4 +1,4 @@
-import { IOptions, Event, EventType } from './const';
+import { IOptions, Event, EventType } from './interface';
 import Core from './core';
 
 type IHooks = {

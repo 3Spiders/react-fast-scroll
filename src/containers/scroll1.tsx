@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import Scroll from "../components/scroll";
 import Loading from './loading';
-import { Event, IDefaultDown, IDefaultUp } from "../components/const";
+import { Event, IDefaultDown, IDefaultUp } from "../components/interface";
 import './index.less';
 
 const defaultProps = {
@@ -139,7 +139,6 @@ class ScrollView extends Component<IProps, IState> {
     });
 
     const PromiseSuccessCallback = (finishUp: boolean) => {
-      console.log('kkk');
       clearTimeout(this.pullDownTimer);
       this.pullDownTimer = window.setTimeout(() => {
         this.setState({ isPullingDown: false });
@@ -193,7 +192,7 @@ class ScrollView extends Component<IProps, IState> {
 
   private async handleRequestError(fn: () => Promise<boolean>) {
     const errorPromise: Promise<boolean> = new Promise((resolve, reject) => {
-      console.log(this.props.requestErrorTime);
+      clearTimeout(this.requestErrorTimer);
       this.requestErrorTimer = window.setTimeout(() => {
         Scroll.info('request callback error');
         reject(false);

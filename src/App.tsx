@@ -6,9 +6,10 @@ import Scroll1 from './containers/scroll1';
 function App() {
 
   function pullDown(): Promise<boolean> {
-    console.log('test');
+    console.log('pullDown');
     return new Promise(resolve => {
       setTimeout(() => {
+        console.log('pullDown resolve');
         resolve(false);
       }, 2000);
     });
@@ -19,14 +20,14 @@ function App() {
     return new Promise(resolve => {
       setTimeout(() => {
         resolve(false);
-        console.log(123333333);
+        console.log('pullUp resolve');
       }, 2000);
     });
   }
 
 
   return (
-    <Scroll1 pullDown={pullDown} pullUp={pullUp}>
+    <Scroll1 useBodyScroll pullDown={pullDown} pullUp={pullUp} up={{ offset: 0 }}>
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
