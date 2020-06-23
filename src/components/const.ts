@@ -1,5 +1,18 @@
 import { EventType } from "./interface";
 
+// Todo 所有的事件，仅有一个数据源
+const EventCollect = [
+  'pullUp',
+  'pullDown',
+  'pullingDown',
+  'cancelPullDown',
+  'resetPullUp',
+  'scroll',
+  'touchstart',
+  'touchmove',
+  'touchend',
+];
+
 export const DefaultOptions = {
   useBodyScroll: false,
   isLockX: false,

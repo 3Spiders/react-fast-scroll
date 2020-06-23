@@ -1,9 +1,9 @@
-import React, { Component } from "react";
-import Scroll from "../components/scroll";
+import React, { Component } from 'react';
 import Loading from './loading';
-import { IDefaultDown, IDefaultUp } from "../components/interface";
-import { Event } from '../components/const';
 import './index.less';
+import { IPartialDown, IPartialUp } from '../components/interface';
+import Scroll from '../components/scroll';
+import { Event } from '../components/const';
 
 const defaultProps = {
   requestErrorTime: 10000,
@@ -19,29 +19,27 @@ const defaultProps = {
   isLoadFull: true,
   useBodyScroll: false,
   throttleScrollTimer: 0,
-  up: {},
-  down: {},
 };
 
-type IProps = {
-  pullUp?: () => Promise<boolean>,
-  pullDown?: () => Promise<boolean>,
-  requestErrorTime?: number, // 请求多少秒未响应，错误提示
-  pullDownTime?: number,
-  pullDownBounceTime?: number, // 下拉回弹延迟结束的时间
-  showLoading?: boolean,
-  finishUpContent?: string,
-  pullDownContent?: string,
-  errorContent?: string,
-  height?: number,
-  customNoData?: boolean,
-  isLockX?: boolean,
-  isLoadFull?: boolean,
-  useBodyScroll?: boolean,
-  throttleScrollTimer?: number
-  up?: IDefaultUp,
-  down?: IDefaultDown,
-}
+interface IProps {
+  pullUp: () => Promise<boolean>,
+  pullDown: () => Promise<boolean>,
+  requestErrorTime: number, // 请求多少秒未响应，错误提示
+  pullDownTime: number,
+  pullDownBounceTime: number, // 下拉回弹延迟结束的时间
+  showLoading: boolean,
+  finishUpContent: string,
+  pullDownContent: string,
+  errorContent: string,
+  height: number,
+  customNoData: boolean,
+  isLockX: boolean,
+  isLoadFull: boolean,
+  useBodyScroll: boolean,
+  throttleScrollTimer: number
+  up: IPartialUp,
+  down: IPartialDown,
+};
 
 interface IState {
   isFinishUp: boolean;
@@ -49,9 +47,10 @@ interface IState {
   isPullingDown: boolean;
   isPullingUp: boolean;
   isPullUpError: boolean;
-}
+};
 
-class ScrollView extends Component<IProps, IState> {
+class ScrollView extends Component<Partial<IProps>, IState> {
+  static defaultProps = defaultProps;
   scroll: Scroll | null;
   scrollRef: React.RefObject<HTMLDivElement>;
   isBouncing: boolean;
@@ -59,9 +58,8 @@ class ScrollView extends Component<IProps, IState> {
   requestErrorTimer: number;
   pullDownTimer: number;
   pullDownBounceTimer: number;
-  static defaultProps = defaultProps;
 
-  constructor(props: IProps) {
+  constructor(props: Partial<IProps>) {
     super(props);
     this.scrollRef = React.createRef();
     this.scroll = null;
@@ -104,16 +102,16 @@ class ScrollView extends Component<IProps, IState> {
     clearTimeout(this.requestErrorTimer);
   }
 
-  initEvent() {
+  endPullUp(bol = true) {
+    this.setState({ isFinishUp: bol });
+    (this.scroll as Scroll).endPullUp(bol);
+  }
+
+  private initEvent() {
     (this.scroll as Scroll).on(Event.pullUp, this.pullUp, this);
     (this.scroll as Scroll).on(Event.pullingDown, this.pullingDown, this);
     (this.scroll as Scroll).on(Event.pullDown, this.pullDown, this);
     (this.scroll as Scroll).on(Event.cancelPullDown, this.cancelPullDown, this);
-  }
-
-  endPullUp(bol = true) {
-    this.setState({ isFinishUp: bol });
-    (this.scroll as Scroll).endPullUp(bol);
   }
 
   private cancelPullDown() {
@@ -196,7 +194,7 @@ class ScrollView extends Component<IProps, IState> {
       clearTimeout(this.requestErrorTimer);
       this.requestErrorTimer = window.setTimeout(() => {
         Scroll.info('request callback error');
-        reject(false);
+        reject(Error('error'));
       }, this.props.requestErrorTime);
     });
     const res = await Promise.race([fn(), errorPromise]) as boolean;
@@ -255,6 +253,7 @@ class ScrollView extends Component<IProps, IState> {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/member-ordering
   render() {
     const { pullUp, pullDown, children } = this.props;
     return (

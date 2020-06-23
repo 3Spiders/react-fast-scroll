@@ -1,4 +1,4 @@
-import { IOptions,  EventType,  } from './interface';
+import { IPartialOptions,  EventType,  } from './interface';
 import { Event, Hooks } from './const';
 import Core from './core';
 
@@ -7,8 +7,6 @@ type IHooks = {
 };
 
 export default class Scroll extends Core {
-  hooks: IHooks;
-
   static warning(msg: string) {
     console.error(`[react-fast-scroll]: ${msg}`);
   }
@@ -17,7 +15,9 @@ export default class Scroll extends Core {
     console.info(`[react-fast-scroll]: ${msg}`);
   }
 
-  constructor(el: HTMLElement, options?: IOptions) {
+  hooks: IHooks;
+
+  constructor(el: HTMLElement, options?: IPartialOptions) {
     super({ el, options });
     this.hooks = Hooks;
     this.initEvent();
@@ -57,6 +57,7 @@ export default class Scroll extends Core {
   }
 
   private spliceOne(list: any[][], index: number) {
+    // eslint-disable-next-line no-param-reassign
     for (; index + 1 < list.length; index++) {
       list[index] = list[index + 1];
     }

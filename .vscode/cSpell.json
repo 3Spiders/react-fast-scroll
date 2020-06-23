@@ -1,0 +1,7 @@
+{
+  "ignoreWords":[
+    "autobind",
+    "backreference",
+    "Unmount"
+  ]
+}

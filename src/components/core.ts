@@ -1,6 +1,7 @@
 
+import { autobind } from 'core-decorators';
 import { DefaultOptions, PER_SECOND, Event } from './const';
-import {  IOptions, IEvents, IDimension, IDefaultOptions, HTMLAttribute, ICore, EventCallback, EventType } from './interface';
+import {  IPartialOptions, IEvents, IDimension, IOptions, HTMLAttribute, ICore, EventCallback, EventType } from './interface';
 import { getDocumentValue, extend } from './utils';
 import Scroll from './scroll';
 import { throttle } from 'lodash';
@@ -10,36 +11,38 @@ import { throttle } from 'lodash';
  * 1、全屏自动加载有问题。
  * @class Core
  */
+
+@autobind
 class Core {
-  scrollDom: HTMLElement;
-  contentDom: HTMLElement;
-  options: IDefaultOptions;
-  events: IEvents;
-  private isPullingUp: boolean;
-  private isPullingDown: boolean;
-  private pullingDownHeight: number;
-  private isFinishUp: boolean;
+  scrollDom: HTMLElement; // 滚动元素
+  contentDom: HTMLElement; // 滚动元素下面的一个子元素，用于操作下拉刷新的transform动画
+  options: IOptions;
+  events: IEvents; // 所有注册事件以及回调
+  private isPullingUp: boolean;// 是否处于上拉状态
+  private isPullingDown: boolean; // 是否处于下拉状态
+  private pullingDownHeight: number; // 下拉了多少距离
+  private isFinishUp: boolean; // 是否已经没有更多数据
   private initTimer: number;
-  private loadFullTimer: number;
-  private loadFullCnt: number;
-  private startTop: number | null;
+  private loadFullTimer: number; // 全屏加载的时间
+  private loadFullCnt: number; // 全屏加载的次数
+  private startTop: number | null; // scrollTop，判断是否在顶部，与下拉刷新有关
   private startX: number;
   private startY: number;
-  private documentClientHeight: number;
   private preY: number;
-  private isHorizontal: boolean;
-  private isBouncing: boolean;
-  private isMoveDown: boolean;
-  private executeScrollTo: boolean;
-  private preScrollTop: number;
-  private throttleScroll: any;
+  private documentClientHeight: number;
+  private isHorizontal: boolean; // 是否是横向滚动
+  private isBouncing: boolean; // 是否处于下拉刷新的回弹状态
+  private isMoveDown: boolean; // 是否是向下拉
+  private executingScrollTo: boolean; // 是否处于scrollTo的滚动状态
+  private preScrollTop: number; // 上一次的scrollTop值
+  private throttleScroll: () => void; // 滚动截流的函数
 
   constructor(core: ICore) {
     this.scrollDom = core.el;
     this.options = extend(true, {}, DefaultOptions, core.options);
     this.isPullingUp = false;
     this.isPullingDown = false;
-    this.pullingDownHeight = 0; // 下拉了多少距离
+    this.pullingDownHeight = 0;
     this.initTimer = 0;
     this.loadFullTimer = 0;
     this.isFinishUp = false;
@@ -50,10 +53,11 @@ class Core {
     this.preY = 0;
     this.isHorizontal = false;
     this.isBouncing = false;
-    this.isMoveDown = false; // 是否向下拉
-    this.executeScrollTo = false;
+    this.isMoveDown = false;
+    this.executingScrollTo = false;
     this.preScrollTop = 0;
     this.documentClientHeight = getDocumentValue('clientHeight');
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     this.events = {} as IEvents;
     this.throttleScroll = throttle(() => {
       this.scroll();
@@ -75,7 +79,7 @@ class Core {
     this.init();
   }
 
-  pullUp(showLoading: boolean = true) {
+  pullUp(showLoading = true) {
     this.isPullingUp = true;
     this.events[Event.pullUp] && this.events[Event.pullUp](showLoading);
   }
@@ -86,7 +90,7 @@ class Core {
     this.events[Event.pullDown] && this.events[Event.pullDown](this.pullingDownHeight, this.options.down.offset);
   }
 
-  resetOptions(options: IOptions) {
+  resetOptions(options: IPartialOptions) {
     this.options = extend(true, {}, this.options, options);
   }
 
@@ -100,7 +104,7 @@ class Core {
     this.events[Event.resetPullUp] && this.events[Event.resetPullUp]();
   }
 
-  scrollTo(y: number, duration: number = 0) {
+  scrollTo(y: number, duration = 0) {
     // 最大可滚动的y
     const maxY = this.getElementValue('scrollHeight') - this.getElementValue('clientHeight');
     let translateY = Math.max(y, 0);
@@ -129,12 +133,12 @@ class Core {
         requestAnimationFrame(execute);
       } else {
         this.setScrollTop(translateY);
-        this.executeScrollTo = false;
+        this.executingScrollTo = false;
       }
     };
 
     // 锁定状态
-    this.executeScrollTo = true;
+    this.executingScrollTo = true;
     requestAnimationFrame(execute);
   }
 
@@ -200,7 +204,7 @@ class Core {
     }
   }
 
-  private scroll = () => {
+  private scroll() {
     const scrollTop = this.getElementValue('scrollTop');
     const scrollHeight = this.getElementValue('scrollHeight');
     const clientHeight = this.getElementValue('clientHeight');
@@ -210,7 +214,7 @@ class Core {
     this.events[Event.scroll] && this.events[Event.scroll](scrollTop);
 
     // 触发了下拉刷新或者上拉加载更多，即退出
-    if (this.isPullingUp || this.isPullingDown || this.executeScrollTo || direction < 0) return;
+    if (this.isPullingUp || this.isPullingDown || this.executingScrollTo || direction < 0) return;
 
     if (!this.options.up.isLock && !this.isFinishUp && scrollHeight > 0) {
       const toBottom = scrollHeight - clientHeight - scrollTop;
@@ -223,14 +227,14 @@ class Core {
     }
   }
 
-  private touchstart = (e: TouchEvent) => {
+  private touchstart(e: TouchEvent) {
     this.events[Event.touchstart] && this.events[Event.touchstart](e);
     this.startTop = this.getElementValue('scrollTop');
     this.startY = this.getTouchPosition(e, 'Y');
     this.startX = this.getTouchPosition(e, 'X');
   }
 
-  private touchmove = (e: TouchEvent) => {
+  private touchmove(e: TouchEvent) {
     this.events[Event.touchmove] && this.events[Event.touchmove](e);
 
     if (this.startTop !== null && this.startTop <= 0 && !this.isPullingDown && !this.options.down.isLock) {
@@ -291,7 +295,7 @@ class Core {
     }
   }
 
-  private touchend = (e: TouchEvent) => {
+  private touchend(e: TouchEvent) {
     this.events[Event.touchend] && this.events[Event.touchend](e);
 
     // 下拉刷新之后自动回弹
@@ -344,7 +348,7 @@ class Core {
     this.contentDom.style.transform = 'none';
   }
 
-  private translateContentDom(y: number = 0, duration: number = 0) {
+  private translateContentDom(y = 0, duration = 0) {
     // 改变pullingDownHeight， 这个参数关乎逻辑
     this.pullingDownHeight = y;
 
