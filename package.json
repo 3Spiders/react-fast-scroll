@@ -1,7 +1,25 @@
 {
   "name": "react-fast-scroll",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.1",
+  "description": "a pull-up and pull-down react component, you can also customize to other framework, like vue, angular",
+  "keywords": [
+    "react scroll",
+    "react-fast-scroll",
+    "react fast scroll",
+    "react pull",
+    "react pull up",
+    "react pull down",
+    "react scroll view",
+    "react scroll-view",
+    "scroll view",
+    "fast scroll"
+  ],
+  "author": "Peter",
+  "main": "src/index.tsx",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/carrollcai/react-fast-scroll.git"
+  },
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
@@ -48,5 +66,10 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.156"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/carrollcai/react-fast-scroll/issues"
+  },
+  "homepage": "https://github.com/carrollcai/react-fast-scroll#readme",
+  "license": "MIT"
 }
