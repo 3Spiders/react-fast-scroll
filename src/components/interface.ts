@@ -7,18 +7,6 @@ export interface ICore {
 
 export type EventType = 'pullUp' | 'pullDown' | 'pullingDown' | 'cancelPullDown' | 'resetPullUp' | 'scroll' | 'touchstart' | 'touchmove' | 'touchend';
 
-export const Event = {
-  pullUp: 'pullUp' as EventType,
-  pullDown: 'pullDown' as EventType,
-  pullingDown: 'pullingDown' as EventType,
-  cancelPullDown: 'cancelPullDown' as EventType,
-  resetPullUp: 'resetPullUp' as EventType,
-  scroll: 'scroll' as EventType,
-  touchstart: 'touchstart' as EventType,
-  touchmove: 'touchmove' as EventType,
-  touchend: 'touchend' as EventType,
-};
-
 export interface IDown {
   offset: number,
   bounceTime: number,
@@ -47,13 +35,13 @@ export interface IDefaultUp {
   isAutoLoad?: boolean
 }
 
-type event = (s?: number | TouchEvent | boolean, m?: any) => void;
+export type EventCallback = (...args: any[]) => void;
 
 export type IDimension = 'X' | 'Y';
 
-export interface IEvents {
-  [key: string]: event
-}
+export type IEvents = {
+  [key in EventType]: EventCallback;
+};
 
 export interface IDefaultOptions {
   useBodyScroll: boolean,
@@ -62,6 +50,7 @@ export interface IDefaultOptions {
   disablePullDown: boolean,
   defaultReloadCnt: number,
   defaultReloadTimer: number,
+  throttleScrollTimer: number,
   down: IDown,
   up: IUp,
 };
@@ -73,6 +62,7 @@ export interface IOptions {
   disablePullDown?: boolean,
   defaultReloadCnt?: number,
   defaultReloadTimer?: number,
+  throttleScrollTimer?: number,
   down?: IDefaultDown,
   up?: IDefaultUp,
 }

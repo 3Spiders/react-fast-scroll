@@ -1,7 +1,7 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-import Scroll1 from './containers/scroll1';
+import ScrollView from './containers/scroll-view';
 
 function App() {
 
@@ -27,7 +27,7 @@ function App() {
 
 
   return (
-    <Scroll1 useBodyScroll pullDown={pullDown} pullUp={pullUp} up={{ offset: 0 }}>
+    <ScrollView useBodyScroll pullDown={pullDown} pullUp={pullUp} up={{ offset: 0 }} throttleScrollTimer={2000}>
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
@@ -45,7 +45,7 @@ function App() {
         </a>
         </header>
       </div>
-    </Scroll1>
+    </ScrollView>
   );
 }
 

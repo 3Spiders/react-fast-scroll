@@ -1563,6 +1563,11 @@
   resolved "http://registry.npm.pt.mi.com/@types/json-schema/download/@types/json-schema-7.0.5.tgz#dcce4430e64b443ba8945f0290fb564ad5bac6dd"
   integrity sha1-3M5EMOZLRDuolF8CkPtWStW6xt0=
 
+"@types/lodash@^4.14.156":
+  version "4.14.156"
+  resolved "http://registry.npm.pt.mi.com/@types/lodash/download/@types/lodash-4.14.156.tgz#cbe30909c89a1feeb7c60803e785344ea0ec82d1"
+  integrity sha1-y+MJCciaH+63xggD54U0TqDsgtE=
+
 "@types/minimatch@*":
   version "3.0.3"
   resolved "http://registry.npm.pt.mi.com/@types/minimatch/download/@types/minimatch-3.0.3.tgz#3dca0e3f33b200fc7d1139c0cd96c1268cadfd9d"

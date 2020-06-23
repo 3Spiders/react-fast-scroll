@@ -1,13 +1,13 @@
 
-import { TouchEvent } from 'react';
-import { DefaultOptions, PER_SECOND } from './const';
-import { Event, IOptions, IEvents, IDimension, IDefaultOptions, HTMLAttribute, ICore } from './interface';
-import { getDocumentValue, getClientHeightByDom, extend } from './utils';
+import { DefaultOptions, PER_SECOND, Event } from './const';
+import {  IOptions, IEvents, IDimension, IDefaultOptions, HTMLAttribute, ICore, EventCallback, EventType } from './interface';
+import { getDocumentValue, extend } from './utils';
 import Scroll from './scroll';
+import { throttle } from 'lodash';
 
 /**
- * Todo，touch事件支持浏览器mouse事件，参数全部设置私有属性
- *  全屏自动加载有问题。
+ * Todo
+ * 1、全屏自动加载有问题。
  * @class Core
  */
 class Core {
@@ -30,13 +30,13 @@ class Core {
   private isHorizontal: boolean;
   private isBouncing: boolean;
   private isMoveDown: boolean;
-  private direction: number;
   private executeScrollTo: boolean;
   private preScrollTop: number;
+  private throttleScroll: any;
 
   constructor(core: ICore) {
+    this.scrollDom = core.el;
     this.options = extend(true, {}, DefaultOptions, core.options);
-    this.events = {};
     this.isPullingUp = false;
     this.isPullingDown = false;
     this.pullingDownHeight = 0; // 下拉了多少距离
@@ -47,16 +47,18 @@ class Core {
     this.startTop = null;
     this.startY = 0;
     this.startX = 0;
-    this.documentClientHeight = document.documentElement.clientHeight;
     this.preY = 0;
     this.isHorizontal = false;
     this.isBouncing = false;
     this.isMoveDown = false; // 是否向下拉
-    this.direction = 0;
     this.executeScrollTo = false;
     this.preScrollTop = 0;
+    this.documentClientHeight = getDocumentValue('clientHeight');
+    this.events = {} as IEvents;
+    this.throttleScroll = throttle(() => {
+      this.scroll();
+    }, this.options.throttleScrollTimer)
 
-    this.scrollDom = core.el;
     if (this.scrollDom instanceof HTMLElement) {
       this.contentDom = this.scrollDom.children[0] as HTMLElement;
       if (!this.contentDom) {
@@ -68,6 +70,7 @@ class Core {
       this.contentDom = document.createElement('div');
       return;
     }
+    if (this.options.useBodyScroll) this.scrollDom = document.body;
 
     this.init();
   }
@@ -99,13 +102,13 @@ class Core {
 
   scrollTo(y: number, duration: number = 0) {
     // 最大可滚动的y
-    const maxY = this.scrollDom.scrollHeight - getClientHeightByDom(this.scrollDom);
+    const maxY = this.getElementValue('scrollHeight') - this.getElementValue('clientHeight');
     let translateY = Math.max(y, 0);
     translateY = Math.min(translateY, maxY);
-    const diff = this.scrollDom.scrollTop - translateY;
+    const diff = this.getElementValue('scrollTop') - translateY;
 
     if (diff === 0 || duration === 0) {
-      return this.scrollDom.scrollTop = translateY;
+      return this.setScrollTop(translateY);
     }
 
     // 每秒60帧，计算每一帧步长
@@ -117,14 +120,15 @@ class Core {
       if (cur < count) {
         if (cur === count - 1) {
           // 最后一次直接设置y,避免计算误差
+          this.setScrollTop(translateY);
           this.scrollDom.scrollTop = translateY;
         } else {
-          this.scrollDom.scrollTop -= step;
+          this.setScrollTop(this.getElementValue('scrollTop') - step);
         }
         cur += 1;
         requestAnimationFrame(execute);
       } else {
-        this.scrollDom.scrollTop = translateY;
+        this.setScrollTop(translateY);
         this.executeScrollTo = false;
       }
     };
@@ -134,7 +138,7 @@ class Core {
     requestAnimationFrame(execute);
   }
 
-  addEvent(event: string, callback: any) {
+  addEvent(event: EventType, callback: EventCallback) {
     if (event && typeof callback === 'function') {
       this.events[event] = callback;
     }
@@ -167,16 +171,16 @@ class Core {
     this.removeEvent();
   }
 
-  private clearTimer() {
-    clearTimeout(this.initTimer);
-    clearTimeout(this.loadFullTimer);
-  }
+  private init() {
+    this.initPullDown();
+    this.initPullUp();
 
-  private removeEvent() {
-    this.scrollDom.removeEventListener('scroll', this.scroll);
-    this.scrollDom.removeEventListener('touchstart', this.touchstart);
-    this.scrollDom.removeEventListener('touchmove', this.touchmove);
-    this.scrollDom.removeEventListener('touchend', this.touchend);
+    // 执行要在addEvent事件注册之后
+    this.initTimer = window.setTimeout(() => {
+      if (this.options.up.isAutoLoad) {
+        this.pullUp();
+      }
+    });
   }
 
   private initPullDown() {
@@ -188,22 +192,45 @@ class Core {
   }
 
   private initPullUp() {
-    this.scrollDom.addEventListener('scroll', this.scroll, { passive: true });
+    const dom = this.options.useBodyScroll ? window : this.scrollDom;
+    if (this.options.throttleScrollTimer) {
+      dom.addEventListener('scroll', this.throttleScroll, { passive: true });
+    } else {
+      dom.addEventListener('scroll', this.scroll, { passive: true });
+    }
   }
 
-  private getTouchPosition(e: TouchEvent, dimension: IDimension = 'X'): number {
-    const key2 = dimension === 'X' ? 'pageX' : 'pageY';
-    return e.touches[0] && e.touches[0][key2];
+  private scroll = () => {
+    const scrollTop = this.getElementValue('scrollTop');
+    const scrollHeight = this.getElementValue('scrollHeight');
+    const clientHeight = this.getElementValue('clientHeight');
+    const direction = scrollTop - this.preScrollTop;
+    this.preScrollTop = scrollTop;
+
+    this.events[Event.scroll] && this.events[Event.scroll](scrollTop);
+
+    // 触发了下拉刷新或者上拉加载更多，即退出
+    if (this.isPullingUp || this.isPullingDown || this.executeScrollTo || direction < 0) return;
+
+    if (!this.options.up.isLock && !this.isFinishUp && scrollHeight > 0) {
+      const toBottom = scrollHeight - clientHeight - scrollTop;
+      if (toBottom <= this.options.up.offset) {
+        // 满足上拉加载
+        if (!this.isPullingUp && !this.isFinishUp) {
+          this.pullUp();
+        }
+      }
+    }
   }
 
-  private touchstart = (e: any) => {
+  private touchstart = (e: TouchEvent) => {
     this.events[Event.touchstart] && this.events[Event.touchstart](e);
     this.startTop = this.getElementValue('scrollTop');
     this.startY = this.getTouchPosition(e, 'Y');
     this.startX = this.getTouchPosition(e, 'X');
   }
 
-  private touchmove = (e: any) => {
+  private touchmove = (e: TouchEvent) => {
     this.events[Event.touchmove] && this.events[Event.touchmove](e);
 
     if (this.startTop !== null && this.startTop <= 0 && !this.isPullingDown && !this.options.down.isLock) {
@@ -264,8 +291,8 @@ class Core {
     }
   }
 
-  private touchend = (e: any) => {
-    this.events[Event.touchend] && this.events[Event.touchend]();
+  private touchend = (e: TouchEvent) => {
+    this.events[Event.touchend] && this.events[Event.touchend](e);
 
     // 下拉刷新之后自动回弹
     if (this.isMoveDown) {
@@ -287,39 +314,19 @@ class Core {
     this.isHorizontal = false;
   }
 
-  private scroll = () => {
-    const scrollTop = this.getElementValue('scrollTop');
-    const scrollHeight = this.getElementValue('scrollHeight');
-    const clientHeight = this.getElementValue('clientHeight');
-    const direction = scrollTop - this.preScrollTop;
-    this.preScrollTop = scrollTop;
-
-    this.events[Event.scroll] && this.events[Event.scroll](scrollTop);
-
-    // 触发了下拉刷新或者上拉加载更多，即退出
-    if (this.isPullingUp || this.isPullingDown || this.executeScrollTo || direction < 0) return;
-
-    if (!this.options.up.isLock && !this.isFinishUp && scrollHeight > 0) {
-      const toBottom = scrollHeight - clientHeight - scrollTop;
-      if (toBottom <= this.options.up.offset) {
-        // 满足上拉加载
-        if (!this.isPullingUp && !this.isFinishUp) {
-          this.pullUp();
-        }
-      }
+  // 解决HTML DTD问题
+  private setScrollTop(value: number) {
+    if (this.options.useBodyScroll) {
+      document.body.scrollTop = value;
+      document.documentElement.scrollTop = value;
+    } else {
+      this.scrollDom.scrollTop = value;
     }
   }
 
-  private init() {
-    this.initPullDown();
-    this.initPullUp();
-
-    // 执行要在addEvent事件注册之后
-    this.initTimer = window.setTimeout(() => {
-      if (this.options.up.isAutoLoad) {
-        this.pullUp();
-      }
-    });
+  private getTouchPosition(e: TouchEvent, dimension: IDimension = 'X'): number {
+    const key2 = dimension === 'X' ? 'pageX' : 'pageY';
+    return e.touches[0] && e.touches[0][key2];
   }
 
   private getElementValue(val: HTMLAttribute) {
@@ -351,15 +358,13 @@ class Core {
   }
 
   private loadFullScreen() {
+    // && wrapper.scrollHeight - options.loadingHeight <= getClientHeightByDom(wrapper) scrollHeight是网页内容高度（最小值是clientHeight），需要减去loading的高度50
     if (
       !this.options.up.isLock
-      // 避免无法计算高度时无限加载
-      && this.getElementValue('scrollTop') === 0
-      // scrollHeight是网页内容高度（最小值是clientHeight），需要减去loading的高度50
-      && this.getElementValue('scrollHeight') > 0
-      // && wrapper.scrollHeight - options.loadingHeight <= getClientHeightByDom(wrapper)
-      && this.getElementValue('scrollHeight') <= this.getElementValue('clientHeight')
       && this.loadFullCnt <= this.options.defaultReloadCnt
+      && this.getElementValue('scrollTop') === 0 // 避免无法计算高度时无限加载
+      && this.getElementValue('scrollHeight') > 0
+      && this.getElementValue('scrollHeight') <= this.getElementValue('clientHeight')
     ) {
       clearTimeout(this.loadFullTimer);
       this.loadFullTimer = window.setTimeout(() => {
@@ -374,6 +379,23 @@ class Core {
     } else {
       if (this.loadFullCnt) this.loadFullCnt = 0;
     }
+  }
+
+  private clearTimer() {
+    clearTimeout(this.initTimer);
+    clearTimeout(this.loadFullTimer);
+  }
+
+  private removeEvent() {
+    const dom = this.options.useBodyScroll ? window : this.scrollDom;
+    if (this.options.throttleScrollTimer) {
+      dom.addEventListener('scroll', this.throttleScroll, { passive: true });
+    } else {
+      dom.removeEventListener('scroll', this.scroll);
+    }
+    this.scrollDom.removeEventListener('touchstart', this.touchstart);
+    this.scrollDom.removeEventListener('touchmove', this.touchmove);
+    this.scrollDom.removeEventListener('touchend', this.touchend);
   }
 }
 

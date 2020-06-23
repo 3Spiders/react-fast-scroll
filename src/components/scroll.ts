@@ -1,8 +1,9 @@
-import { IOptions, Event, EventType } from './interface';
+import { IOptions,  EventType,  } from './interface';
+import { Event, Hooks } from './const';
 import Core from './core';
 
 type IHooks = {
-  [key in EventType]?: any;
+  [key in EventType]:  Array<Array<any>>;
 };
 
 export default class Scroll extends Core {
@@ -18,20 +19,16 @@ export default class Scroll extends Core {
 
   constructor(el: HTMLElement, options?: IOptions) {
     super({ el, options });
-    this.hooks = {};
+    this.hooks = Hooks;
     this.initEvent();
   }
 
   // 执行对应的外部生命周期
-  public on(type: EventType, fn: (...args: any[]) => void, context?: any) {
-    if (!this.hooks[type]) {
-      this.hooks[type] = [];
-    }
-
+  on(type: EventType, fn: (...args: any[]) => void, context?: any) {
     this.hooks[type].push([fn, context]);
   }
 
-  public trigger(...args: any[]) {
+  trigger(...args: any[]) {
     const type = args[0] as EventType;
     const hooks = this.hooks[type];
     if (!hooks) return;
@@ -47,7 +44,7 @@ export default class Scroll extends Core {
     }
   }
 
-  public off(type: EventType, fn: () => void) {
+  off(type: EventType, fn: () => void) {
     const hooks = this.hooks[type];
     if (!hooks) return;
 
@@ -59,7 +56,7 @@ export default class Scroll extends Core {
     }
   }
 
-  private spliceOne(list: [], index: number) {
+  private spliceOne(list: any[][], index: number) {
     for (; index + 1 < list.length; index++) {
       list[index] = list[index + 1];
     }

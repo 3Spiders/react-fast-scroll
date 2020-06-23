@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import Scroll from "../components/scroll";
 import Loading from './loading';
-import { Event, IDefaultDown, IDefaultUp } from "../components/interface";
+import { IDefaultDown, IDefaultUp } from "../components/interface";
+import { Event } from '../components/const';
 import './index.less';
 
 const defaultProps = {
@@ -14,16 +15,17 @@ const defaultProps = {
   errorContent: '加载失败，点击重试',
   customNoData: false, // 自定义一条数据都没有的样式。一般是配合没有数据时，有数据之后，一定要置为false，否则上拉会出现问题
   // Scroll相关的设置
-  down: {},
-  up: {},
   isLockX: false,
   isLoadFull: true,
   useBodyScroll: false,
+  throttleScrollTimer: 0,
+  up: {},
+  down: {},
 };
 
 type IProps = {
   pullUp?: () => Promise<boolean>,
-  pullDown: () => Promise<boolean>,
+  pullDown?: () => Promise<boolean>,
   requestErrorTime?: number, // 请求多少秒未响应，错误提示
   pullDownTime?: number,
   pullDownBounceTime?: number, // 下拉回弹延迟结束的时间
@@ -33,11 +35,12 @@ type IProps = {
   errorContent?: string,
   height?: number,
   customNoData?: boolean,
-  useBodyScroll?: boolean,
   isLockX?: boolean,
   isLoadFull?: boolean,
-  down?: IDefaultDown,
+  useBodyScroll?: boolean,
+  throttleScrollTimer?: number
   up?: IDefaultUp,
+  down?: IDefaultDown,
 }
 
 interface IState {
@@ -49,8 +52,8 @@ interface IState {
 }
 
 class ScrollView extends Component<IProps, IState> {
-  scroll: any;
-  scrollRef: React.RefObject<any>;
+  scroll: Scroll | null;
+  scrollRef: React.RefObject<HTMLDivElement>;
   isBouncing: boolean;
   firstIntoPage: boolean;
   requestErrorTimer: number;
@@ -60,9 +63,9 @@ class ScrollView extends Component<IProps, IState> {
 
   constructor(props: IProps) {
     super(props);
-    // this.scroll = null;
-    this.isBouncing = false;
     this.scrollRef = React.createRef();
+    this.scroll = null;
+    this.isBouncing = false;
     this.firstIntoPage = false;
     this.requestErrorTimer = 0;
     this.pullDownTimer = 0;
@@ -78,12 +81,13 @@ class ScrollView extends Component<IProps, IState> {
   }
 
   componentDidMount() {
-    const { height, useBodyScroll, up, down, isLockX, isLoadFull } = this.props;
-    const dom = this.scrollRef.current;
-    this.scroll = new Scroll(dom as HTMLDivElement, {
-      useBodyScroll,
+    const { height, useBodyScroll, up, down, isLockX, isLoadFull, throttleScrollTimer } = this.props;
+    const dom = this.scrollRef.current as HTMLDivElement;
+    this.scroll = new Scroll(dom, {
       isLockX,
       isLoadFull,
+      useBodyScroll,
+      throttleScrollTimer,
       up,
       down,
     });
@@ -94,15 +98,13 @@ class ScrollView extends Component<IProps, IState> {
   }
 
   componentWillUnmount() {
-    this.scroll.destroy();
+    if (this.scroll) (this.scroll as Scroll).destroy();
     clearTimeout(this.pullDownTimer);
     clearTimeout(this.pullDownBounceTimer);
     clearTimeout(this.requestErrorTimer);
   }
 
   initEvent() {
-    (this.scroll as Scroll).on(Event.scroll, () => {
-    }, this);
     (this.scroll as Scroll).on(Event.pullUp, this.pullUp, this);
     (this.scroll as Scroll).on(Event.pullingDown, this.pullingDown, this);
     (this.scroll as Scroll).on(Event.pullDown, this.pullDown, this);
@@ -111,7 +113,7 @@ class ScrollView extends Component<IProps, IState> {
 
   endPullUp(bol = true) {
     this.setState({ isFinishUp: bol });
-    this.scroll.endPullUp(bol);
+    (this.scroll as Scroll).endPullUp(bol);
   }
 
   private cancelPullDown() {
@@ -124,7 +126,6 @@ class ScrollView extends Component<IProps, IState> {
   }
 
   private pullDown() {
-    console.log('pullDown');
     const { pullDown, pullDownTime } = this.props;
     if (!pullDown || this.isBouncing) return;
 
@@ -165,7 +166,7 @@ class ScrollView extends Component<IProps, IState> {
     clearTimeout(this.pullDownBounceTimer);
     this.pullDownBounceTimer = window.setTimeout(() => {
       this.isBouncing = false;
-      this.scroll.endPullDown(finishUp);
+      (this.scroll as Scroll).endPullDown(finishUp);
     }, pullDownBounceTime);
   }
 
@@ -180,7 +181,7 @@ class ScrollView extends Component<IProps, IState> {
       if (this.firstIntoPage) this.firstIntoPage = false;
       if (showLoading) this.setState({ isPullingUp: false });
       this.endPullUp(finishUp);
-      !finishUp && this.scroll.resetPullUp();
+      !finishUp && (this.scroll as Scroll).resetPullUp();
     };
 
     this.handleRequestError(pullUp)
@@ -203,23 +204,24 @@ class ScrollView extends Component<IProps, IState> {
     return res;
   }
 
+  // Todo 上拉失败之后发起重试
+  private pullUpRetry() {
+
+  }
+
   private renderPullDown() {
     const { pullDownContent } = this.props;
     const { isBeforePullDown, isPullingDown } = this.state;
     return (
-      <div className="downWrapper">
-        <div className="downBeforeTrigger" style={{ display: isBeforePullDown ? 'block' : 'none' }}>
+      <div className="scroll-view-down">
+        <div className="scroll-view-down-content" style={{ display: isBeforePullDown ? 'block' : 'none' }}>
           {pullDownContent}
         </div>
-        <div className="downLoading" style={{ display: !isBeforePullDown && isPullingDown ? 'block' : 'none' }}>
+        <div className="scroll-view-down-loading" style={{ display: !isBeforePullDown && isPullingDown ? 'block' : 'none' }}>
           <Loading />
         </div>
       </div>
     );
-  }
-
-  private pullUpRetry() {
-
   }
 
   private renderPullUp() {
@@ -229,21 +231,21 @@ class ScrollView extends Component<IProps, IState> {
     // loading第一次不加载，下拉情况下需要隐藏上拉元素
     if ((this.firstIntoPage && !showLoading) || customNoData) return null;
     return (
-      <div className="upWrapper" style={{ display: isBeforePullDown || isPullingDown ? 'none' : 'flex' }}>
+      <div className="scroll-view-up" style={{ display: isBeforePullDown || isPullingDown ? 'none' : 'flex' }}>
         <div
-          className="upAfterTrigger"
+          className="scroll-view-up-content"
           style={{ display: isFinishUp ? 'block' : 'none' }}
         >
           {finishUpContent}
         </div>
         <div
-          className="upLoading"
+          className="scroll-view-up-loading"
           style={{ display: isPullingUp ? 'block' : 'none' }}
         >
           <Loading />
         </div>
         <div
-          className="upBeforeTrigger"
+          className="scroll-view-error"
           onClick={this.pullUpRetry}
           style={{ display: isPullUpError && !isFinishUp && !isPullingUp ? 'block' : 'none' }}
         >
@@ -256,8 +258,8 @@ class ScrollView extends Component<IProps, IState> {
   render() {
     const { pullUp, pullDown, children } = this.props;
     return (
-      <div className="scroll" ref={this.scrollRef}>
-        <div className="scrollList">
+      <div className="scroll-view" ref={this.scrollRef}>
+        <div className="scroll-view-container">
           {pullDown && this.renderPullDown()}
           {children}
           {pullUp && this.renderPullUp()}

@@ -1,17 +1,16 @@
 @scrollHeight: 50px;
 
-.scroll {
+.scroll-view {
   overflow-y: scroll;
   overflow-x: hidden;
+}
+
+.scroll-view-container {
   position: relative;
   z-index: 0;
 }
 
-.scrollList {
-  position: relative;
-}
-
-.upWrapper {
+.scroll-view-up {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -23,43 +22,42 @@
   position: relative;
 }
 
-.upBeforeTrigger,
-.upAfterTrigger,
-.upLoading {
+.scroll-view-error,
+.scroll-view-up-content,
+.scroll-view-up-loading {
   width: 100%;
   text-align: center;
   display: none;
 }
 
-.upBeforeTrigger {
-  color: rgb(2, 153, 255);
+.scroll-view-error {
+  color: #0299ff;
 }
 
-.downWrapper {
+.scroll-view-down {
   position: absolute;
   width: 100%;
   left: 0;
   top: -@scrollHeight;
+  height: @scrollHeight;
+  font-size: 14px;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: @scrollHeight;
   color: #999999;
   transition: all;
-  font-size: 14px;
-  z-index: -1;
 }
 
-.downLoading,
-.downBeforeTrigger {
+.scroll-view-down-loading,
+.scroll-view-down-content {
   width: 100%;
   text-align: center;
 }
 
-.downLoading {
+.scroll-view-down-loading {
   display: none;
 }
 
-.downBeforeTrigger {
+.scroll-view-down-content {
   display: block;
 }
