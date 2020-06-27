@@ -1,17 +1,17 @@
-import { EventType } from "./interface";
+import { EventType } from './interface';
 
 // Todo 所有的事件，仅有一个数据源
-const EventCollect = [
-  'pullUp',
-  'pullDown',
-  'pullingDown',
-  'cancelPullDown',
-  'resetPullUp',
-  'scroll',
-  'touchstart',
-  'touchmove',
-  'touchend',
-];
+// const EventCollect = [
+//   'pullUp',
+//   'pullDown',
+//   'pullingDown',
+//   'cancelPullDown',
+//   'resetPullUp',
+//   'scroll',
+//   'touchstart',
+//   'touchmove',
+//   'touchend',
+// ];
 
 export const DefaultOptions = {
   useBodyScroll: false,
@@ -32,7 +32,7 @@ export const DefaultOptions = {
     offset: 0,
     isLock: false,
     isAutoLoad: true
-  },
+  }
 };
 
 export const Event = {
@@ -44,7 +44,7 @@ export const Event = {
   scroll: 'scroll' as EventType,
   touchstart: 'touchstart' as EventType,
   touchmove: 'touchmove' as EventType,
-  touchend: 'touchend' as EventType,
+  touchend: 'touchend' as EventType
 };
 
 export const Hooks = {
@@ -56,7 +56,7 @@ export const Hooks = {
   scroll: [],
   touchstart: [],
   touchmove: [],
-  touchend: [],
+  touchend: []
 };
 
 export const PER_SECOND = 1000 / 60;
