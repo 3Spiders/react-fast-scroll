@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ScrollView from '../scroll-view';
 import { useHistory } from 'react-router-dom';
 
 const Home = () => {
+  const [listData, setListData] = useState([]);
   const history = useHistory();
   const pullDown = (): Promise<boolean> => {
     console.log('pullDown');
@@ -18,24 +19,27 @@ const Home = () => {
     console.log('pullUp');
     return new Promise(resolve => {
       setTimeout(() => {
+        // const newList = createTestData(4, false, listData);
+        // setListData(newList);
         resolve(false);
         console.log('pullUp resolve');
       }, 2000);
     });
   };
 
-  const createTestData = (count, isReset, oldData) => {
+  const createTestData = (count: number, isReset: boolean, oldData: any) => {
+    let counts;
     if (isReset) {
-      count = 0;
+      counts = 0;
     }
-    this.count = this.count || 0;
+    counts = count || 0;
 
     let res = [];
     const dateStr = new Date().toLocaleString();
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < counts; i++) {
       res.push({
-        title: `测试第【${this.count++}】条新闻标题`,
+        title: `测试第【${counts++}】条新闻标题`,
         date: dateStr
       });
     }
@@ -53,6 +57,16 @@ const Home = () => {
       throttleScrollTimer={2000}
     >
       <div onClick={() => history.push('/')}>返回上一页</div>
+      <ul className="data-list">
+        {listData.length
+          ? listData.map((item, index) => (
+              <li key={index}>
+                {/* <h3>{item.title}</h3>
+                <span>{item.date}</span> */}
+              </li>
+            ))
+          : <div>暂无数据</div>}
+      </ul>
     </ScrollView>
   );
 };
