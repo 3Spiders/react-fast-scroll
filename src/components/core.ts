@@ -1,10 +1,10 @@
 
 import { autobind } from 'core-decorators';
-import { DefaultOptions, PER_SECOND, Event } from './const';
-import {  IPartialOptions, IEvents, IDimension, IOptions, HTMLAttribute, ICore, EventCallback, EventType } from './interface';
-import { getDocumentValue, extend } from './utils';
+import { DefaultOptions, PER_SECOND, Event, Events } from './const';
+import {  IPartialOptions, IEvents, IDimension, IOptions, HTMLAttribute, ICore, EventType } from './interface';
+import { getDocumentValue  } from './utils';
 import Scroll from './scroll';
-import { throttle } from 'lodash';
+import { throttle, merge } from 'lodash';
 
 /**
  * Todo
@@ -39,7 +39,7 @@ class Core {
 
   constructor(core: ICore) {
     this.scrollDom = core.el;
-    this.options = extend(true, {}, DefaultOptions, core.options);
+    this.options = merge({}, DefaultOptions, core.options);
     this.isPullingUp = false;
     this.isPullingDown = false;
     this.pullingDownHeight = 0;
@@ -57,8 +57,7 @@ class Core {
     this.executingScrollTo = false;
     this.preScrollTop = 0;
     this.documentClientHeight = getDocumentValue('clientHeight');
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    this.events = {} as IEvents;
+    this.events = Events;
     this.throttleScroll = throttle(() => {
       this.scroll();
     }, this.options.throttleScrollTimer)
@@ -81,17 +80,17 @@ class Core {
 
   pullUp(showLoading = true) {
     this.isPullingUp = true;
-    this.events[Event.pullUp] && this.events[Event.pullUp](showLoading);
+    this.events[Event.pullUp]?.(showLoading);
   }
 
   pullDown() {
     this.isPullingDown = true;
     this.translateContentDom(this.options.down.offset, this.options.down.bounceTime);
-    this.events[Event.pullDown] && this.events[Event.pullDown](this.pullingDownHeight, this.options.down.offset);
+    this.events[Event.pullDown]?.(this.pullingDownHeight, this.options.down.offset);
   }
 
   resetOptions(options: IPartialOptions) {
-    this.options = extend(true, {}, this.options, options);
+    this.options = merge({}, this.options, options);
   }
 
   resetPullUp() {
@@ -101,7 +100,7 @@ class Core {
     if (this.isPullingUp) {
       this.isPullingUp = false;
     }
-    this.events[Event.resetPullUp] && this.events[Event.resetPullUp]();
+    this.events[Event.resetPullUp]?.();
   }
 
   scrollTo(y: number, duration = 0) {
@@ -142,7 +141,7 @@ class Core {
     requestAnimationFrame(execute);
   }
 
-  addEvent(event: EventType, callback: EventCallback) {
+  addEvent(event: EventType, callback: Function) {
     if (event && typeof callback === 'function') {
       this.events[event] = callback;
     }
@@ -211,7 +210,7 @@ class Core {
     const direction = scrollTop - this.preScrollTop;
     this.preScrollTop = scrollTop;
 
-    this.events[Event.scroll] && this.events[Event.scroll](scrollTop);
+    this.events[Event.scroll]?.(scrollTop);
 
     // 触发了下拉刷新或者上拉加载更多，即退出
     if (this.isPullingUp || this.isPullingDown || this.executingScrollTo || direction < 0) return;
@@ -228,14 +227,14 @@ class Core {
   }
 
   private touchstart(e: TouchEvent) {
-    this.events[Event.touchstart] && this.events[Event.touchstart](e);
+    this.events[Event.touchstart]?.(e);
     this.startTop = this.getElementValue('scrollTop');
     this.startY = this.getTouchPosition(e, 'Y');
     this.startX = this.getTouchPosition(e, 'X');
   }
 
   private touchmove(e: TouchEvent) {
-    this.events[Event.touchmove] && this.events[Event.touchmove](e);
+    this.events[Event.touchmove]?.(e);
 
     if (this.startTop !== null && this.startTop <= 0 && !this.isPullingDown && !this.options.down.isLock) {
       const curX = this.getTouchPosition(e, 'X');
@@ -286,7 +285,7 @@ class Core {
           this.pullingDownHeight = Math.max(0, this.pullingDownHeight + (diff * rate));
         }
 
-        this.events[Event.pullingDown] && this.events[Event.pullingDown](this.pullingDownHeight);
+        this.events[Event.pullingDown]?.(this.pullingDownHeight);
 
         this.translateContentDom(this.pullingDownHeight);
       } else {
@@ -296,7 +295,7 @@ class Core {
   }
 
   private touchend(e: TouchEvent) {
-    this.events[Event.touchend] && this.events[Event.touchend](e);
+    this.events[Event.touchend]?.(e);
 
     // 下拉刷新之后自动回弹
     if (this.isMoveDown) {
@@ -305,7 +304,7 @@ class Core {
       } else {
         this.translateContentDom(0, this.options.down.bounceTime);
         this.removeContentDomAnimation();
-        this.events[Event.cancelPullDown] && this.events[Event.cancelPullDown]();
+        this.events[Event.cancelPullDown]?.();
       }
       this.isMoveDown = false;
     }
@@ -330,7 +329,7 @@ class Core {
 
   private getTouchPosition(e: TouchEvent, dimension: IDimension = 'X'): number {
     const key2 = dimension === 'X' ? 'pageX' : 'pageY';
-    return e.touches[0] && e.touches[0][key2];
+    return e.touches[0]?.[key2];
   }
 
   private getElementValue(val: HTMLAttribute) {

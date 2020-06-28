@@ -1,7 +1,6 @@
-import { EventType } from "./interface";
+import { EventType, IEvents, IEvent, IHooks } from "./interface";
 
-// Todo 所有的事件，仅有一个数据源
-const EventCollect = [
+export const EventCollect: EventType[] = [
   'pullUp',
   'pullDown',
   'pullingDown',
@@ -12,6 +11,20 @@ const EventCollect = [
   'touchmove',
   'touchend',
 ];
+
+const _Event: any = {};
+const _Events: any = {};
+const _Hooks: any = {};
+
+EventCollect.forEach(event => {
+  _Event[event] = event;
+  _Events[event] = null;
+  _Hooks[event] = [];
+});
+
+export const Event: IEvent = _Event;
+export const Events: IEvents = _Events;
+export const Hooks: IHooks = _Hooks;
 
 export const DefaultOptions = {
   useBodyScroll: false,
@@ -33,30 +46,6 @@ export const DefaultOptions = {
     isLock: false,
     isAutoLoad: true
   },
-};
-
-export const Event = {
-  pullUp: 'pullUp' as EventType,
-  pullDown: 'pullDown' as EventType,
-  pullingDown: 'pullingDown' as EventType,
-  cancelPullDown: 'cancelPullDown' as EventType,
-  resetPullUp: 'resetPullUp' as EventType,
-  scroll: 'scroll' as EventType,
-  touchstart: 'touchstart' as EventType,
-  touchmove: 'touchmove' as EventType,
-  touchend: 'touchend' as EventType,
-};
-
-export const Hooks = {
-  pullUp: [],
-  pullDown: [],
-  pullingDown: [],
-  cancelPullDown: [],
-  resetPullUp: [],
-  scroll: [],
-  touchstart: [],
-  touchmove: [],
-  touchend: [],
 };
 
 export const PER_SECOND = 1000 / 60;

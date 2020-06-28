@@ -34,13 +34,19 @@ export interface IUp {
 
 export type IPartialUp = Partial<IUp>;
 
-export type EventCallback = (...args: any[]) => void;
-
 export type IDimension = 'X' | 'Y';
 
 export type IEvents = {
-  [key in EventType]: EventCallback;
+  [key in EventType]: Function | null;
 };
+
+export type IEvent = {
+  [key in EventType]: EventType;
+};
+
+export type IHooks = {
+  [key in EventType]: [];
+}
 
 export interface IOptions {
   useBodyScroll: boolean,

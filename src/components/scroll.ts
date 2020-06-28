@@ -24,7 +24,7 @@ export default class Scroll extends Core {
   }
 
   // 执行对应的外部生命周期
-  on(type: EventType, fn: (...args: any[]) => void, context?: any) {
+  on(type: EventType, fn: Function, context?: any) {
     this.hooks[type].push([fn, context]);
   }
 
