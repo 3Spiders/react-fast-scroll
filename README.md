@@ -58,7 +58,7 @@ const Demo = () => {
 
 下拉刷新。实际上是利用 touch 事件，判断当滚动容器的 scrollTop 为0时，解锁 touch 事件，记录用户的下拉的距离，用 transform 同步下移视图。
 
-上拉加载。利用 scroll 事件，监听元素的滚动事件，用容器滚动的总高度（scrollHeight），减去 当前区域可见高度（clientHeight ）和 ScrollTop，当这个值小于等于零时，代表已经到底，可以触发上拉事件。
+上拉加载。利用 scroll 事件，监听元素的滚动事件，用容器滚动的总高度（scrollHeight），减去 当前区域可见高度（clientHeight ）和 scrollTop，当这个值小于等于零时，代表已经到底，可以触发上拉事件。
 
 ## API文档
 
@@ -73,12 +73,12 @@ throttle | boolean | false | 是否开启滚动截流
 throttleTime | number | 0 | 滚动截流的时间间隔
 isScrollBar | boolean | true | 是否有滚动条
 down | object |  | 下拉刷新配置项
-up.enable | boolean | true | 是否允许下拉
-up.offset | number | 100 | 移动多少距离，才能触发下拉条件
-up.bounceTime | number | 300 | 下拉之后，下拉区域的回弹速度
-up.dampRateBegin | number | 1 | 阻尼系数，下拉小于offset时的阻尼系数，越小越难拉。
-up.dampRate | number | 1 | 阻尼系数，下拉超过阈值后的阻尼系数，越小越难拉。
-up | object |  | 上拉加载配置项 |
+down.enable | boolean | true | 是否允许下拉
+down.offset | number | 100 | 移动多少距离，才能触发下拉条件
+down.bounceTime | number | 300 | 下拉之后，下拉区域的回弹速度
+down.dampRateBegin | number | 1 | 阻尼系数，下拉小于offset时的阻尼系数，越小越难拉。
+down.dampRate | number | 1 | 阻尼系数，下拉超过阈值后的阻尼系数，越小越难拉。
+up | object |  | 上拉加载配置项
 up.enable | boolean | true | 是否允许上拉
 up.offset | number | 0 | 距离底部多少距离，触发上拉加载
 up.isAutoLoad | boolean | true | 进入页面，自动调下拉接口

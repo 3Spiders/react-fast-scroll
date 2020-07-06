@@ -1,0 +1,13 @@
+public/
+test/
+build/
+doc/
+script/
+node_modules/
+.DS_Store
+.npm-debug.log
+.gitignore
+.npmignore
+.eslintrc.js
+.tsconfig.json
+yarn.lock

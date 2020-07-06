@@ -15,10 +15,14 @@
     "fast scroll"
   ],
   "author": "Peter",
-  "main": "src/index.tsx",
+  "main": "src/index.js",
+  "typings": "lib/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/carrollcai/react-fast-scroll.git"
+  },
+  "bugs": {
+    "url": "https://github.com/carrollcai/react-fast-scroll/issues"
   },
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
@@ -55,7 +59,8 @@
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "release": "react-app-rewired release"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -74,9 +79,6 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.156"
-  },
-  "bugs": {
-    "url": "https://github.com/carrollcai/react-fast-scroll/issues"
   },
   "license": "MIT"
 }

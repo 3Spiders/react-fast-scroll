@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import Loading from './loading';
 import './index.less';
-import { IPartialDown, IPartialUp, IPartialOptions } from '../components/interface';
+import { IPartialOptions } from '../components/interface';
 import Scroll from '../components/scroll';
-import { Event, DefaultOptions } from '../components/const';
+import { Event } from '../components/const';
 
 const defaultProps = {
   requestErrorTime: 10000,

@@ -9,11 +9,6 @@ type DeepPartial<T> = {
 
 export type HTMLAttribute = 'scrollTop' | 'scrollHeight' | 'clientHeight';
 
-export interface ICore {
-  el: HTMLElement,
-  options?: IPartialOptions
-};
-
 export type EventType = 'pullUp' | 'pullDown' | 'pullingDown' | 'cancelPullDown' | 'resetPullUp' | 'scroll' | 'touchstart' | 'touchmove' | 'touchend';
 
 export interface IDown {

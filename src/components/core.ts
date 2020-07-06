@@ -1,7 +1,7 @@
 
 import { autobind } from 'core-decorators';
 import { DefaultOptions, PER_SECOND, Event, Events } from './const';
-import {  IPartialOptions, IEvents, IDimension, IOptions, HTMLAttribute, ICore, EventType, IContainer } from './interface';
+import {  IPartialOptions, IEvents, IDimension, IOptions, HTMLAttribute, EventType, IContainer } from './interface';
 import { getDocumentValue  } from './utils';
 import Scroll from './scroll';
 import { throttle, merge } from 'lodash';

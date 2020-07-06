@@ -66,35 +66,35 @@ export default class Scroll extends Core {
 
   private initEvent() {
     this.addEvent(Event.pullDown, (height: number, offset: number) => {
-      this.hooks[Event.pullDown] && this.trigger([Event.pullDown], height, offset);
+      this.hooks[Event.pullDown] && this.trigger(Event.pullDown, height, offset);
     });
 
     this.addEvent(Event.pullUp, (showLoading: boolean) => {
-      this.hooks[Event.pullUp] && this.trigger([Event.pullUp], showLoading);
+      this.hooks[Event.pullUp] && this.trigger(Event.pullUp, showLoading);
     });
 
     this.addEvent(Event.pullingDown, (height: number, offset: number) => {
-      this.hooks[Event.pullingDown] && this.trigger([Event.pullingDown], height, offset);
+      this.hooks[Event.pullingDown] && this.trigger(Event.pullingDown, height, offset);
     });
 
     this.addEvent(Event.scroll, (scrollTop: number) => {
-      this.hooks[Event.scroll] && this.trigger([Event.scroll], scrollTop);
+      this.hooks[Event.scroll] && this.trigger(Event.scroll, scrollTop);
     });
 
     this.addEvent(Event.cancelPullDown, () => {
-      this.hooks[Event.cancelPullDown] && this.trigger([Event.cancelPullDown]);
+      this.hooks[Event.cancelPullDown] && this.trigger(Event.cancelPullDown);
     });
 
     this.addEvent(Event.touchstart, (e: TouchEvent) => {
-      this.hooks[Event.touchstart] && this.trigger([Event.touchstart], e);
+      this.hooks[Event.touchstart] && this.trigger(Event.touchstart, e);
     });
 
     this.addEvent(Event.touchmove, (e: TouchEvent) => {
-      this.hooks[Event.touchmove] && this.trigger([Event.touchmove], e);
+      this.hooks[Event.touchmove] && this.trigger(Event.touchmove, e);
     });
 
     this.addEvent(Event.touchend, (e: TouchEvent) => {
-      this.hooks[Event.touchend] && this.trigger([Event.touchend], e);
+      this.hooks[Event.touchend] && this.trigger(Event.touchend, e);
     });
   }
 }
