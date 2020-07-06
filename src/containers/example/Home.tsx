@@ -50,11 +50,12 @@ const Home = () => {
 
   return (
     <ScrollView
-      useBodyScroll
+      isUseBodyScroll
       pullDown={pullDown}
       pullUp={pullUp}
       up={{ offset: 0 }}
-      throttleScrollTimer={2000}
+      throttle
+      throttleTime={100}
     >
       <div onClick={() => history.push('/')}>返回上一页</div>
       <ul className="data-list">

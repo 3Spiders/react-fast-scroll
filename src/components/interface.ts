@@ -21,15 +21,22 @@ export interface IDown {
   bounceTime: number,
   dampRateBegin: number,
   dampRate: number,
-  isLock: boolean
+  enable: boolean
+}
+
+export interface ILoadFull {
+  enable: boolean,
+  loadCount: number,
+  time: number,
 }
 
 export type IPartialDown = Partial<IDown>;
 
 export interface IUp {
+  enable: boolean,
   offset: number,
-  isLock: boolean,
-  isAutoLoad: boolean
+  isAutoLoad: boolean,
+  loadFull: ILoadFull,
 }
 
 export type IPartialUp = Partial<IUp>;
@@ -49,15 +56,17 @@ export type IHooks = {
 }
 
 export interface IOptions {
-  useBodyScroll: boolean,
+  isUseBodyScroll: boolean,
   isLockX: boolean,
-  isLoadFull: boolean,
-  disablePullDown: boolean,
-  defaultReloadCnt: number,
-  defaultReloadTimer: number,
-  throttleScrollTimer: number,
+  isScrollBar: boolean,
+  throttle: boolean,
+  throttleTime: number,
   down: IDown,
   up: IUp,
 };
+
+export interface IContainer {
+  container: HTMLElement,
+}
 
 export type IPartialOptions = DeepPartial<IOptions>;

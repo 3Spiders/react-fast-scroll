@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import Loading from './loading';
 import './index.less';
-import { IPartialDown, IPartialUp } from '../components/interface';
+import { IPartialDown, IPartialUp, IPartialOptions } from '../components/interface';
 import Scroll from '../components/scroll';
-import { Event } from '../components/const';
+import { Event, DefaultOptions } from '../components/const';
 
 const defaultProps = {
   requestErrorTime: 10000,
@@ -14,11 +14,6 @@ const defaultProps = {
   finishUpContent: '没有更多数据了',
   errorContent: '加载失败，点击重试',
   customNoData: false, // 自定义一条数据都没有的样式。一般是配合没有数据时，有数据之后，一定要置为false，否则上拉会出现问题
-  // Scroll相关的设置
-  isLockX: false,
-  isLoadFull: true,
-  useBodyScroll: false,
-  throttleScrollTimer: 0,
 };
 
 interface IProps {
@@ -33,12 +28,6 @@ interface IProps {
   errorContent: string,
   height: number,
   customNoData: boolean,
-  isLockX: boolean,
-  isLoadFull: boolean,
-  useBodyScroll: boolean,
-  throttleScrollTimer: number
-  up: IPartialUp,
-  down: IPartialDown,
 };
 
 interface IState {
@@ -49,7 +38,7 @@ interface IState {
   isPullUpError: boolean;
 };
 
-class ScrollView extends Component<Partial<IProps>, IState> {
+class ScrollView extends Component<Partial<IProps & IPartialOptions>, IState> {
   static defaultProps = defaultProps;
   scroll: Scroll | null;
   scrollRef: React.RefObject<HTMLDivElement>;
@@ -59,7 +48,7 @@ class ScrollView extends Component<Partial<IProps>, IState> {
   pullDownTimer: number;
   pullDownBounceTimer: number;
 
-  constructor(props: Partial<IProps>) {
+  constructor(props: Partial<IProps & IPartialOptions>) {
     super(props);
     this.scrollRef = React.createRef();
     this.scroll = null;
@@ -79,18 +68,19 @@ class ScrollView extends Component<Partial<IProps>, IState> {
   }
 
   componentDidMount() {
-    const { height, useBodyScroll, up, down, isLockX, isLoadFull, throttleScrollTimer } = this.props;
-    const dom = this.scrollRef.current as HTMLDivElement;
-    this.scroll = new Scroll(dom, {
+    const { height, isUseBodyScroll, up, down, isLockX, throttle,throttleTime } = this.props;
+    const container = this.scrollRef.current as HTMLDivElement;
+    this.scroll = new Scroll({
+      container,
       isLockX,
-      isLoadFull,
-      useBodyScroll,
-      throttleScrollTimer,
+      isUseBodyScroll,
+      throttleTime,
+      throttle,
       up,
       down,
     });
-    if (!useBodyScroll) {
-      dom.style.height = height ? `${height}px` : '100vh';
+    if (!isUseBodyScroll) {
+      container.style.height = height ? `${height}px` : '100vh';
     }
     this.initEvent();
   }

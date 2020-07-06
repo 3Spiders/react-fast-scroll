@@ -27,24 +27,28 @@ export const Events: IEvents = _Events;
 export const Hooks: IHooks = _Hooks;
 
 export const DefaultOptions = {
-  useBodyScroll: false,
+  container: null,
   isLockX: false,
-  isLoadFull: true,
-  disablePullDown: false,
-  defaultReloadCnt: 3,
-  defaultReloadTimer: 300,
-  throttleScrollTimer: 0,
+  isUseBodyScroll: false,
+  isScrollBar: true,
+  throttle: false,
+  throttleTime: 0,
   down: {
+    enable: true,
     offset: 100,
     bounceTime: 300,
     dampRateBegin: 1,
     dampRate: 0.3,
-    isLock: false
   },
   up: {
+    enable: true,
     offset: 0,
-    isLock: false,
-    isAutoLoad: true
+    isAutoLoad: true,
+    loadFull: {
+      enable: true,
+      loadCount: 3,
+      time: 300,
+    }
   },
 };
 

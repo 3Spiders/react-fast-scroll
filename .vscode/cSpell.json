@@ -2,6 +2,7 @@
   "ignoreWords":[
     "autobind",
     "backreference",
-    "Unmount"
+    "Unmount",
+    "minirefresh"
   ]
 }

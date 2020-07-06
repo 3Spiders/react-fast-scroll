@@ -1,7 +1,7 @@
 
 import { autobind } from 'core-decorators';
 import { DefaultOptions, PER_SECOND, Event, Events } from './const';
-import {  IPartialOptions, IEvents, IDimension, IOptions, HTMLAttribute, ICore, EventType } from './interface';
+import {  IPartialOptions, IEvents, IDimension, IOptions, HTMLAttribute, ICore, EventType, IContainer } from './interface';
 import { getDocumentValue  } from './utils';
 import Scroll from './scroll';
 import { throttle, merge } from 'lodash';
@@ -14,8 +14,8 @@ import { throttle, merge } from 'lodash';
 
 @autobind
 class Core {
-  scrollDom: HTMLElement; // 滚动元素
-  contentDom: HTMLElement; // 滚动元素下面的一个子元素，用于操作下拉刷新的transform动画
+  container: HTMLElement; // 滚动元素
+  content: HTMLElement; // 滚动元素下面的一个子元素，用于操作下拉刷新的transform动画
   options: IOptions;
   events: IEvents; // 所有注册事件以及回调
   private isPullingUp: boolean;// 是否处于上拉状态
@@ -37,9 +37,9 @@ class Core {
   private preScrollTop: number; // 上一次的scrollTop值
   private throttleScroll: () => void; // 滚动截流的函数
 
-  constructor(core: ICore) {
-    this.scrollDom = core.el;
-    this.options = merge({}, DefaultOptions, core.options);
+  constructor(options: IPartialOptions & IContainer) {
+    this.container = options.container;
+    this.options = merge({}, DefaultOptions, options);
     this.isPullingUp = false;
     this.isPullingDown = false;
     this.pullingDownHeight = 0;
@@ -60,20 +60,20 @@ class Core {
     this.events = Events;
     this.throttleScroll = throttle(() => {
       this.scroll();
-    }, this.options.throttleScrollTimer)
+    }, this.options.throttleTime)
 
-    if (this.scrollDom instanceof HTMLElement) {
-      this.contentDom = this.scrollDom.children[0] as HTMLElement;
-      if (!this.contentDom) {
+    if (this.container instanceof HTMLElement) {
+      this.content = this.container.children[0] as HTMLElement;
+      if (!this.content) {
         Scroll.warning('The Scroll element need at least one child element.');
         return;
       }
     } else {
       Scroll.warning('The Scroll element is required');
-      this.contentDom = document.createElement('div');
+      this.content = document.createElement('div');
       return;
     }
-    if (this.options.useBodyScroll) this.scrollDom = document.body;
+    if (this.options.isUseBodyScroll) this.container = document.body;
 
     this.init();
   }
@@ -124,7 +124,7 @@ class Core {
         if (cur === count - 1) {
           // 最后一次直接设置y,避免计算误差
           this.setScrollTop(translateY);
-          this.scrollDom.scrollTop = translateY;
+          this.container.scrollTop = translateY;
         } else {
           this.setScrollTop(this.getElementValue('scrollTop') - step);
         }
@@ -155,7 +155,7 @@ class Core {
     if (isFinishUp) {
       this.isFinishUp = true;
     } else {
-      this.options.isLoadFull && this.loadFullScreen();
+      this.options.up.loadFull.enable && this.loadFullScreen();
     }
   }
 
@@ -188,15 +188,15 @@ class Core {
 
   private initPullDown() {
     this.addScrollDomAnimation();
-    this.scrollDom.addEventListener('touchstart', this.touchstart);
+    this.container.addEventListener('touchstart', this.touchstart);
     // 当需要阻止默认事件，需要加上passive: false，不然transform会和滚动一起触发。
-    this.scrollDom.addEventListener('touchmove', this.touchmove, { passive: false });
-    this.scrollDom.addEventListener('touchend', this.touchend);
+    this.container.addEventListener('touchmove', this.touchmove, { passive: false });
+    this.container.addEventListener('touchend', this.touchend);
   }
 
   private initPullUp() {
-    const dom = this.options.useBodyScroll ? window : this.scrollDom;
-    if (this.options.throttleScrollTimer) {
+    const dom = this.options.isUseBodyScroll ? window : this.container;
+    if (this.options.throttle) {
       dom.addEventListener('scroll', this.throttleScroll, { passive: true });
     } else {
       dom.addEventListener('scroll', this.scroll, { passive: true });
@@ -215,7 +215,8 @@ class Core {
     // 触发了下拉刷新或者上拉加载更多，即退出
     if (this.isPullingUp || this.isPullingDown || this.executingScrollTo || direction < 0) return;
 
-    if (!this.options.up.isLock && !this.isFinishUp && scrollHeight > 0) {
+    // if (!this.options.up.enable && !this.isFinishUp && scrollHeight > 0) {
+    if (!this.isFinishUp && scrollHeight > 0) {
       const toBottom = scrollHeight - clientHeight - scrollTop;
       if (toBottom <= this.options.up.offset) {
         // 满足上拉加载
@@ -236,7 +237,8 @@ class Core {
   private touchmove(e: TouchEvent) {
     this.events[Event.touchmove]?.(e);
 
-    if (this.startTop !== null && this.startTop <= 0 && !this.isPullingDown && !this.options.down.isLock) {
+    // if (this.startTop !== null && this.startTop <= 0 && !this.isPullingDown && !this.options.down.enable) {
+    if (this.startTop !== null && this.startTop <= 0 && !this.isPullingDown) {
       const curX = this.getTouchPosition(e, 'X');
       const curY = this.getTouchPosition(e, 'Y');
 
@@ -319,11 +321,11 @@ class Core {
 
   // 解决HTML DTD问题
   private setScrollTop(value: number) {
-    if (this.options.useBodyScroll) {
+    if (this.options.isUseBodyScroll) {
       document.body.scrollTop = value;
       document.documentElement.scrollTop = value;
     } else {
-      this.scrollDom.scrollTop = value;
+      this.container.scrollTop = value;
     }
   }
 
@@ -333,18 +335,18 @@ class Core {
   }
 
   private getElementValue(val: HTMLAttribute) {
-    const { useBodyScroll } = this.options;
-    return useBodyScroll ? getDocumentValue(val) : this.scrollDom[val];
+    const { isUseBodyScroll } = this.options;
+    return isUseBodyScroll ? getDocumentValue(val) : this.container[val];
   }
 
   private addScrollDomAnimation() {
-    this.scrollDom.style.webkitTransitionTimingFunction = 'cubic-bezier(0.1, 0.57, 0.1, 1)';
-    this.scrollDom.style.transitionTimingFunction = 'cubic-bezier(0.1, 0.57, 0.1, 1)';
+    this.container.style.webkitTransitionTimingFunction = 'cubic-bezier(0.1, 0.57, 0.1, 1)';
+    this.container.style.transitionTimingFunction = 'cubic-bezier(0.1, 0.57, 0.1, 1)';
   }
 
   private removeContentDomAnimation() {
-    this.contentDom.style.webkitTransform = 'none';
-    this.contentDom.style.transform = 'none';
+    this.content.style.webkitTransform = 'none';
+    this.content.style.transform = 'none';
   }
 
   private translateContentDom(y = 0, duration = 0) {
@@ -352,7 +354,7 @@ class Core {
     this.pullingDownHeight = y;
 
     // 改变wrap的位置（css动画）
-    const wrap = this.contentDom;
+    const wrap = this.content;
 
     wrap.style.webkitTransitionDuration = `${duration}ms`;
     wrap.style.transitionDuration = `${duration}ms`;
@@ -363,22 +365,22 @@ class Core {
   private loadFullScreen() {
     // && wrapper.scrollHeight - options.loadingHeight <= getClientHeightByDom(wrapper) scrollHeight是网页内容高度（最小值是clientHeight），需要减去loading的高度50
     if (
-      !this.options.up.isLock
-      && this.loadFullCnt <= this.options.defaultReloadCnt
+      // !this.options.up.isLock
+      this.loadFullCnt <= this.options.up.loadFull.loadCount
       && this.getElementValue('scrollTop') === 0 // 避免无法计算高度时无限加载
       && this.getElementValue('scrollHeight') > 0
       && this.getElementValue('scrollHeight') <= this.getElementValue('clientHeight')
     ) {
       clearTimeout(this.loadFullTimer);
       this.loadFullTimer = window.setTimeout(() => {
-        if (this.loadFullCnt < this.options.defaultReloadCnt) {
+        if (this.loadFullCnt < this.options.up.loadFull.loadCount) {
           this.loadFullCnt++;
           this.pullUp();
         } else {
           this.loadFullCnt = 0;
           this.endPullUp(true);
         }
-      }, this.options.defaultReloadTimer);
+      }, this.options.up.loadFull.time);
     } else {
       if (this.loadFullCnt) this.loadFullCnt = 0;
     }
@@ -390,15 +392,15 @@ class Core {
   }
 
   private removeEvent() {
-    const dom = this.options.useBodyScroll ? window : this.scrollDom;
-    if (this.options.throttleScrollTimer) {
+    const dom = this.options.isUseBodyScroll ? window : this.container;
+    if (this.options.throttle) {
       dom.addEventListener('scroll', this.throttleScroll, { passive: true });
     } else {
       dom.removeEventListener('scroll', this.scroll);
     }
-    this.scrollDom.removeEventListener('touchstart', this.touchstart);
-    this.scrollDom.removeEventListener('touchmove', this.touchmove);
-    this.scrollDom.removeEventListener('touchend', this.touchend);
+    this.container.removeEventListener('touchstart', this.touchstart);
+    this.container.removeEventListener('touchmove', this.touchmove);
+    this.container.removeEventListener('touchend', this.touchend);
   }
 }
 

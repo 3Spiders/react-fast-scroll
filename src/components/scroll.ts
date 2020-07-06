@@ -1,4 +1,4 @@
-import { IPartialOptions,  EventType,  } from './interface';
+import { IPartialOptions,  EventType, IContainer,  } from './interface';
 import { Event, Hooks } from './const';
 import Core from './core';
 
@@ -17,8 +17,8 @@ export default class Scroll extends Core {
 
   hooks: IHooks;
 
-  constructor(el: HTMLElement, options?: IPartialOptions) {
-    super({ el, options });
+  constructor(options: IPartialOptions & IContainer) {
+    super(options);
     this.hooks = Hooks;
     this.initEvent();
   }
