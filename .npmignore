@@ -11,5 +11,6 @@ node_modules/
 .npmignore
 .eslintrc.js
 .eslintignore
-.tsconfig.json
+tsconfig.json
+config-overrides.js
 yarn.lock
