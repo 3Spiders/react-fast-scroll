@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ScrollView from '../scroll-view';
+import ScrollView from '../../components/index';
 import { useHistory } from 'react-router-dom';
 
 const Home = () => {

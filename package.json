@@ -15,7 +15,7 @@
     "fast scroll"
   ],
   "author": "Peter",
-  "main": "src/index.js",
+  "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "repository": {
     "type": "git",
@@ -25,6 +25,14 @@
     "url": "https://github.com/carrollcai/react-fast-scroll/issues"
   },
   "dependencies": {
+    "@babel/cli": "^7.10.4",
+    "@babel/core": "^7.10.4",
+    "@babel/plugin-proposal-class-properties": "^7.10.4",
+    "@babel/plugin-proposal-decorators": "^7.10.4",
+    "@babel/preset-env": "^7.10.4",
+    "@babel/preset-es2015": "^7.0.0-beta.53",
+    "@babel/preset-react": "^7.10.4",
+    "@babel/preset-typescript": "^7.10.4",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
@@ -60,7 +68,7 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
-    "release": "react-app-rewired release"
+    "release": "NODE_ENV=production babel src/components --copy-files --extensions .js,.jsx,.ts,.tsx --out-dir lib"
   },
   "eslintConfig": {
     "extends": "react-app"

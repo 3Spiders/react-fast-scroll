@@ -1,5 +1,3 @@
-@scrollHeight: 50px;
-
 .scroll-view {
   overflow-y: scroll;
   overflow-x: hidden;
@@ -17,7 +15,7 @@
   align-items: center;
   background-color: #fff;
   color: #999999;
-  height: @scrollHeight;
+  height: 50px;
   font-size: 14px;
   position: relative;
 }
@@ -38,8 +36,8 @@
   position: absolute;
   width: 100%;
   left: 0;
-  top: -@scrollHeight;
-  height: @scrollHeight;
+  top: -50px;
+  height: 50px;
   font-size: 14px;
   display: flex;
   justify-content: center;

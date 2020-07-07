@@ -7,7 +7,7 @@ import {
   Switch,
 } from 'react-router-dom';
 
-import history from './components/history.ts';
+import history from './history.ts';
 import App from './App';
 import Home from './containers/example/Home.tsx';
 import Tab1 from './containers/example/TabOne.tsx';

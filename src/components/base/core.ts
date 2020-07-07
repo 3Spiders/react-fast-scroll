@@ -394,7 +394,7 @@ class Core {
   private removeEvent() {
     const dom = this.options.isUseBodyScroll ? window : this.container;
     if (this.options.throttle) {
-      dom.addEventListener('scroll', this.throttleScroll, { passive: true });
+      dom.removeEventListener('scroll', this.throttleScroll);
     } else {
       dom.removeEventListener('scroll', this.scroll);
     }

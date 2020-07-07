@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import loadingImg from './loading.gif';
-import './loading.less';
+import './loading.css';
 
 class Loading extends Component {
   render() {

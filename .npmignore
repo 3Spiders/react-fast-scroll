@@ -4,10 +4,12 @@ build/
 doc/
 script/
 node_modules/
+.vscode/
 .DS_Store
-.npm-debug.log
+.babelrc
 .gitignore
 .npmignore
 .eslintrc.js
+.eslintignore
 .tsconfig.json
 yarn.lock
