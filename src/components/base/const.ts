@@ -1,22 +1,22 @@
-import { EventType, IEvents, IEvent, IHooks } from "./interface";
+import { IEventType, IEvents, IEvent, IHooks } from "./interface";
 
-export const EventCollect: EventType[] = [
-  'pullUp',
-  'pullDown',
-  'pullingDown',
-  'cancelPullDown',
-  'resetPullUp',
-  'scroll',
-  'touchstart',
-  'touchmove',
-  'touchend',
+export const EventType: IEventType[] = [
+  'PULL_UP',
+  'PULL_DOWN',
+  'PULLING_DOWN',
+  'CANCEL_PULL_DOWN',
+  'RESET_PULL_UP',
+  'SCROLL',
+  'TOUCHSTART',
+  'TOUCHMOVE',
+  'TOUCHEND',
 ];
 
 const _Event: any = {};
 const _Events: any = {};
 const _Hooks: any = {};
 
-EventCollect.forEach(event => {
+EventType.forEach(event => {
   _Event[event] = event;
   _Events[event] = null;
   _Hooks[event] = [];

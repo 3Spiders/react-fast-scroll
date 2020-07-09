@@ -1,10 +1,6 @@
-import { IPartialOptions,  EventType, IContainer,  } from './interface';
+import { IPartialOptions, IEventType, IContainer, IHooks } from './interface';
 import { Event, Hooks } from './const';
 import Core from './core';
-
-type IHooks = {
-  [key in EventType]:  Array<Array<any>>;
-};
 
 export default class Scroll extends Core {
   static warning(msg: string) {
@@ -23,78 +19,65 @@ export default class Scroll extends Core {
     this.initEvent();
   }
 
-  // 执行对应的外部生命周期
-  on(type: EventType, fn: Function, context?: any) {
-    this.hooks[type].push([fn, context]);
+  // https://jkchao.github.io/typescript-book-chinese/typings/functions.html#%E9%87%8D%E8%BD%BD
+  // 重载用法 https://stackoverflow.com/questions/39689763/typescript-duplicate-function-implementation
+  // 与 addEventListener 类似
+  on<T1, T2>(type: IEventType, fn: (arg1: T1, arg2: T2) => void): void;
+  on<T1>(type: IEventType, fn: (arg1: T1) => void): void;
+  on(type: IEventType, fn: (...args: any[]) => void): void {
+    this.hooks[type].push(fn);
   }
 
-  trigger(...args: any[]) {
-    const type = args[0] as EventType;
+  trigger<T1, T2>(type: IEventType, arg1: T1, arg2: T2): void;
+  trigger<T1>(type: IEventType, arg1: T1): void;
+  trigger(type: IEventType): void;
+  trigger(type: IEventType, ...args: any[]): void {
     const hooks = this.hooks[type];
     if (!hooks) return;
 
-    const len = hooks.length;
-    const hooksCopy = [...hooks];
-    for (let i = 0; i < len; i++) {
-      const hook = hooksCopy[i];
-      const [fn, context] = hook;
-      if (fn) {
-        fn.apply(context, [].slice.call(args, 1));
-      }
+    for (let fn of hooks) {
+      fn.apply(this, args);
     }
   }
 
-  off(type: EventType, fn: () => void) {
+  // 与 removeEventListener 类似，都需要传入函数引用
+  off(type: IEventType, fn: Function) {
     const hooks = this.hooks[type];
     if (!hooks) return;
-
-    let count = hooks.length;
-    while (count--) {
-      if (hooks[count][0] === fn || (hooks[count][0] && hooks[count][0].fn === fn)) {
-        this.spliceOne(hooks, count);
-      }
-    }
-  }
-
-  private spliceOne(list: any[][], index: number) {
-    // eslint-disable-next-line no-param-reassign
-    for (; index + 1 < list.length; index++) {
-      list[index] = list[index + 1];
-    }
-    list.pop();
+    this.hooks[type] = this.hooks[type].filter(_fn => _fn !== fn);
   }
 
   private initEvent() {
-    this.addEvent(Event.pullDown, (height: number, offset: number) => {
-      this.hooks[Event.pullDown] && this.trigger(Event.pullDown, height, offset);
+    this.addEvent(Event.PULL_DOWN, (height: number, offset: number) => {
+      this.hooks[Event.PULL_DOWN] && this.trigger(Event.PULL_DOWN, height, offset);
     });
 
-    this.addEvent(Event.pullUp, (showLoading: boolean) => {
-      this.hooks[Event.pullUp] && this.trigger(Event.pullUp, showLoading);
+    this.addEvent(Event.PULL_UP, (showLoading: boolean) => {
+      this.hooks[Event.PULL_UP] && this.trigger(Event.PULL_UP, showLoading);
     });
 
-    this.addEvent(Event.pullingDown, (height: number, offset: number) => {
-      this.hooks[Event.pullingDown] && this.trigger(Event.pullingDown, height, offset);
+    this.addEvent(Event.PULLING_DOWN, (height: number, offset: number) => {
+      this.hooks[Event.PULLING_DOWN] && this.trigger(Event.PULLING_DOWN, height, offset);
     });
 
-    this.addEvent(Event.scroll, (scrollTop: number) => {
-      this.hooks[Event.scroll] && this.trigger(Event.scroll, scrollTop);
+    this.addEvent(Event.SCROLL, (scrollTop: number) => {
+      this.hooks[Event.SCROLL] && this.trigger(Event.SCROLL, scrollTop);
     });
 
-    this.addEvent(Event.cancelPullDown, () => {
-      this.hooks[Event.cancelPullDown] && this.trigger(Event.cancelPullDown);
+    this.addEvent(Event.CANCEL_PULL_DOWN, () => {
+      this.hooks[Event.CANCEL_PULL_DOWN] && this.trigger(Event.CANCEL_PULL_DOWN);
     });
 
-    this.addEvent(Event.touchstart, (e: TouchEvent) => {
-      this.hooks[Event.touchstart] && this.trigger(Event.touchstart, e);
+    this.addEvent(Event.TOUCHSTART, (e: TouchEvent) => {
+      this.hooks[Event.TOUCHSTART] && this.trigger(Event.TOUCHSTART, e);
     });
 
-    this.addEvent(Event.touchmove, (e: TouchEvent) => {
-      this.hooks[Event.touchmove] && this.trigger(Event.touchmove, e);
+    this.addEvent(Event.TOUCHMOVE, (e: TouchEvent) => {
+      this.hooks[Event.TOUCHMOVE] && this.trigger(Event.TOUCHMOVE, e);
     });
 
-    this.addEvent(Event.touchend, (e: TouchEvent) => {
-      this.hooks[Event.touchend] && this.trigger(Event.touchend, e);
+    this.addEvent(Event.TOUCHEND, (e: TouchEvent) => {
+      this.hooks[Event.TOUCHEND] && this.trigger(Event.TOUCHEND, e);
     });
   }
 }

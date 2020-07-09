@@ -1,0 +1,62 @@
+
+.scroll-view {
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.scroll-view-container {
+  position: relative;
+  z-index: 0;
+}
+
+.scroll-view-up {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  color: #999999;
+  height: 50px;
+  font-size: 14px;
+  position: relative;
+}
+
+.scroll-view-error,
+.scroll-view-up-content,
+.scroll-view-up-loading {
+  width: 100%;
+  text-align: center;
+  display: none;
+}
+
+.scroll-view-error {
+  color: #0299ff;
+}
+
+.scroll-view-down {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  top: -50px;
+  height: 50px;
+  font-size: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #999999;
+  transition: all;
+}
+
+.scroll-view-down-loading,
+.scroll-view-down-content {
+  width: 100%;
+  text-align: center;
+}
+
+.scroll-view-down-loading {
+  display: none;
+}
+
+.scroll-view-down-content {
+  display: block;
+}

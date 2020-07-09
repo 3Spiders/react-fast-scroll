@@ -9,7 +9,9 @@ type DeepPartial<T> = {
 
 export type HTMLAttribute = 'scrollTop' | 'scrollHeight' | 'clientHeight';
 
-export type EventType = 'pullUp' | 'pullDown' | 'pullingDown' | 'cancelPullDown' | 'resetPullUp' | 'scroll' | 'touchstart' | 'touchmove' | 'touchend';
+export type IDimension = 'X' | 'Y';
+
+export type IEventType = 'PULL_UP' | 'PULL_DOWN' | 'PULLING_DOWN' | 'CANCEL_PULL_DOWN' | 'RESET_PULL_UP' | 'SCROLL' | 'TOUCHSTART' | 'TOUCHMOVE' | 'TOUCHEND';
 
 export interface IDown {
   offset: number,
@@ -18,14 +20,6 @@ export interface IDown {
   dampRate: number,
   enable: boolean
 }
-
-export interface ILoadFull {
-  enable: boolean,
-  loadCount: number,
-  time: number,
-}
-
-export type IPartialDown = Partial<IDown>;
 
 export interface IUp {
   enable: boolean,
@@ -36,19 +30,13 @@ export interface IUp {
 
 export type IPartialUp = Partial<IUp>;
 
-export type IDimension = 'X' | 'Y';
-
-export type IEvents = {
-  [key in EventType]: Function | null;
-};
-
-export type IEvent = {
-  [key in EventType]: EventType;
-};
-
-export type IHooks = {
-  [key in EventType]: [];
+export interface ILoadFull {
+  enable: boolean,
+  loadCount: number,
+  time: number,
 }
+
+export type IPartialDown = Partial<IDown>;
 
 export interface IOptions {
   isUseBodyScroll: boolean,
@@ -63,5 +51,17 @@ export interface IOptions {
 export interface IContainer {
   container: HTMLElement,
 }
+
+export type IEvents = {
+  [key in IEventType]: Function | null;
+};
+
+export type IEvent = {
+  [key in IEventType]: IEventType;
+};
+
+export type IHooks = {
+  [key in IEventType]: Array<Function>;
+};
 
 export type IPartialOptions = DeepPartial<IOptions>;

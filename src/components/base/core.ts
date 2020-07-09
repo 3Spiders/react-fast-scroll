@@ -1,7 +1,7 @@
 
 import { autobind } from 'core-decorators';
 import { DefaultOptions, PER_SECOND, Event, Events } from './const';
-import {  IPartialOptions, IEvents, IDimension, IOptions, HTMLAttribute, EventType, IContainer } from './interface';
+import {  IPartialOptions, IEvents, IDimension, IOptions, HTMLAttribute, IEventType, IContainer } from './interface';
 import { getDocumentValue  } from './utils';
 import Scroll from './scroll';
 import { throttle, merge } from 'lodash';
@@ -80,13 +80,13 @@ class Core {
 
   pullUp(showLoading = true) {
     this.isPullingUp = true;
-    this.events[Event.pullUp]?.(showLoading);
+    this.events[Event.PULL_UP]?.(showLoading);
   }
 
   pullDown() {
     this.isPullingDown = true;
     this.translateContentDom(this.options.down.offset, this.options.down.bounceTime);
-    this.events[Event.pullDown]?.(this.pullingDownHeight, this.options.down.offset);
+    this.events[Event.PULL_DOWN]?.(this.pullingDownHeight, this.options.down.offset);
   }
 
   resetOptions(options: IPartialOptions) {
@@ -100,7 +100,7 @@ class Core {
     if (this.isPullingUp) {
       this.isPullingUp = false;
     }
-    this.events[Event.resetPullUp]?.();
+    this.events[Event.RESET_PULL_UP]?.();
   }
 
   scrollTo(y: number, duration = 0) {
@@ -141,7 +141,7 @@ class Core {
     requestAnimationFrame(execute);
   }
 
-  addEvent(event: EventType, callback: Function) {
+  addEvent(event: IEventType, callback: Function) {
     if (event && typeof callback === 'function') {
       this.events[event] = callback;
     }
@@ -210,7 +210,7 @@ class Core {
     const direction = scrollTop - this.preScrollTop;
     this.preScrollTop = scrollTop;
 
-    this.events[Event.scroll]?.(scrollTop);
+    this.events[Event.SCROLL]?.(scrollTop);
 
     // 触发了下拉刷新或者上拉加载更多，即退出
     if (this.isPullingUp || this.isPullingDown || this.executingScrollTo || direction < 0) return;
@@ -228,14 +228,14 @@ class Core {
   }
 
   private touchstart(e: TouchEvent) {
-    this.events[Event.touchstart]?.(e);
+    this.events[Event.TOUCHSTART]?.(e);
     this.startTop = this.getElementValue('scrollTop');
     this.startY = this.getTouchPosition(e, 'Y');
     this.startX = this.getTouchPosition(e, 'X');
   }
 
   private touchmove(e: TouchEvent) {
-    this.events[Event.touchmove]?.(e);
+    this.events[Event.TOUCHMOVE]?.(e);
 
     // if (this.startTop !== null && this.startTop <= 0 && !this.isPullingDown && !this.options.down.enable) {
     if (this.startTop !== null && this.startTop <= 0 && !this.isPullingDown) {
@@ -287,7 +287,7 @@ class Core {
           this.pullingDownHeight = Math.max(0, this.pullingDownHeight + (diff * rate));
         }
 
-        this.events[Event.pullingDown]?.(this.pullingDownHeight);
+        this.events[Event.PULLING_DOWN]?.(this.pullingDownHeight);
 
         this.translateContentDom(this.pullingDownHeight);
       } else {
@@ -297,7 +297,7 @@ class Core {
   }
 
   private touchend(e: TouchEvent) {
-    this.events[Event.touchend]?.(e);
+    this.events[Event.TOUCHEND]?.(e);
 
     // 下拉刷新之后自动回弹
     if (this.isMoveDown) {
@@ -306,7 +306,7 @@ class Core {
       } else {
         this.translateContentDom(0, this.options.down.bounceTime);
         this.removeContentDomAnimation();
-        this.events[Event.cancelPullDown]?.();
+        this.events[Event.CANCEL_PULL_DOWN]?.();
       }
       this.isMoveDown = false;
     }
