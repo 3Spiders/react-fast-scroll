@@ -9,9 +9,9 @@ import {
 
 import history from './history.ts';
 import App from './App';
-import Home from './containers/example/Home.tsx';
-import Tab1 from './containers/example/TabOne.tsx';
-import Tab2 from './containers/example/TabTwo.tsx';
+import BasicList from './containers/example/BasicList.tsx';
+import AxiosList from './containers/example/AxiosList.tsx';
+import OptionList from './containers/example/OptionList.tsx';
 import List from './containers/example/List.tsx';
 
 const Routers = () => {
@@ -19,9 +19,9 @@ const Routers = () => {
     <Router history={history()}>
       <Switch>
         <Route exact path="/" component={App} />
-        <Route path="/home" component={Home} />
-        <Route path="/tab1" component={Tab1} />
-        <Route path="/tab2" component={Tab2} />
+        <Route path="/basicList" component={BasicList} />
+        <Route path="/axiosList" component={AxiosList} />
+        <Route path="/optionsList" component={OptionList} />
         <Route path="/list" component={List} />
       </Switch>
     </Router>
