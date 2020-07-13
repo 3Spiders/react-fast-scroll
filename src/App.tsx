@@ -1,21 +1,28 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavBar, List } from 'antd-mobile';
+import { useHistory } from 'react-router-dom';
+import { exampleList } from './staticData';
 
 const App = () => {
+  const { Item } = List;
+  const history = useHistory();
   return (
     <>
-      <li>
-        <Link to="/home">Home</Link>
-      </li>
-      <li>
-        <Link to="/tab1">Tab1</Link>
-      </li>
-      <li>
-        <Link to="/tab2">Tab2</Link>
-      </li>
-      <li>
-        <Link to="/list">list</Link>
-      </li>
+      <NavBar mode="dark">fast-scroll示例列表</NavBar>
+      <List>
+        {exampleList.map(el => (
+          <Item
+            key={el.path}
+            arrow="horizontal"
+            extra={el.extra}
+            onClick={() => {
+              history.push(el.path);
+            }}
+          >
+            {el.name}
+          </Item>
+        ))}
+      </List>
     </>
   );
 };
