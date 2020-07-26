@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
 // import App from './App';
-import './assets/style/antd-reset.scss';
+import './assets/style/antd-reset.less';
+import './index.css';
 import * as serviceWorker from './serviceWorker';
 import Routers from './router';
 

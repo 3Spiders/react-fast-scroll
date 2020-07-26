@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import ScrollView from '../scroll-view';
 import { useHistory } from 'react-router-dom';
 import { Button } from 'antd-mobile';
 import { optionsType } from '../../staticData';
+import ScrollView from '../../components/index';
 
 interface IList {
   title?: string;

@@ -17,9 +17,6 @@ yarn add react-fast-scroll
 
 ## 最小原型
 
-
-我们准备了很多使用例子，全在 example目录下，启动项目，即可看到效果。
-
 下面是采用函数组件的写法。传入上拉（pullUp），下拉（pullDown）回调。
 
 ```js
@@ -53,6 +50,18 @@ const Demo = () => {
     </ScrollView>
   )
 }
+```
+
+## 查看Demo
+
+我们准备了很多使用例子，全在 example目录下，启动项目，即可看到效果。
+
+下载项目到本地并且切换到项目根目录
+
+```
+yarn install
+
+yarn start
 ```
 
 ## 原理

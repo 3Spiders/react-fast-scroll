@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 
 import { Button } from 'antd-mobile';
-import ScrollView from '../scroll-view';
+import ScrollView from '../../components/index';
 
 interface IList {
   title?: string;
