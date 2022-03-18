@@ -1,6 +1,6 @@
 {
   "name": "react-fast-scroll",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "a pull-up and pull-down react component, you can also customize to other framework, like vue, angular",
   "keywords": [
     "react scroll",
@@ -15,8 +15,8 @@
     "fast scroll"
   ],
   "author": "Peter",
-  "main": "lib/index.js",
-  "typings": "lib/index.d.ts",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/carrollcai/react-fast-scroll.git"
