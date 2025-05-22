@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { autobind } from 'core-decorators';
+import { autobind } from './base/decorators';
 import { Scroll, Event, IPartialOptions } from './base/index';
 import Loading from './loading';
 import './scroll.css';
@@ -180,21 +180,38 @@ class ScrollView extends Component<Partial<IProps & IPartialOptions>, IState> {
   }
 
   private async handleRequestError(fn: () => Promise<boolean>) {
+    let timeoutId: number;
+    
     const errorPromise: Promise<boolean> = new Promise((resolve, reject) => {
-      clearTimeout(this.requestErrorTimer);
-      this.requestErrorTimer = window.setTimeout(() => {
+      timeoutId = window.setTimeout(() => {
         Scroll.info('request callback error');
-        reject(Error('error'));
+        reject(new Error('Request timeout'));
       }, this.props.requestErrorTime);
     });
-    const res = await Promise.race([fn(), errorPromise]);
-    clearTimeout(this.requestErrorTimer);
-    return res;
+    
+    try {
+      // Use Promise.race to either get the result or timeout
+      const res = await Promise.race([fn(), errorPromise]);
+      clearTimeout(timeoutId);
+      return res;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
   }
 
-  // Todo 上拉失败之后发起重试
+  // Retry after pull up failure
   private pullUpRetry() {
-
+    if (this.state.isPullUpError) {
+      this.setState({ 
+        isPullUpError: false,
+        isPullingUp: false
+      });
+      
+      // Reset the pull up state and try again
+      (this.scroll as Scroll).resetPullUp();
+      this.pullUp(true);
+    }
   }
 
   private renderPullDown() {

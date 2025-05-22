@@ -1,6 +1,6 @@
 {
   "name": "react-fast-scroll",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "a pull-up and pull-down react component, you can also customize to other framework, like vue, angular",
   "keywords": [
     "react scroll",
@@ -25,7 +25,6 @@
     "url": "https://github.com/carrollcai/react-fast-scroll/issues"
   },
   "dependencies": {
-    "core-decorators": "^0.20.0",
     "lodash": "^4.17.15"
   },
   "scripts": {
@@ -33,7 +32,8 @@
     "build": "react-app-rewired build",
     "test": "jest",
     "eject": "react-scripts eject",
-    "release": "NODE_ENV=production babel src/components --copy-files --extensions .js,.jsx,.ts,.tsx --out-dir lib"
+    "release": "NODE_ENV=production babel src/components --copy-files --extensions .js,.jsx,.ts,.tsx --out-dir lib",
+    "release:optimized": "NODE_ENV=production BABEL_ENV=production babel src/components --copy-files --extensions .js,.jsx,.ts,.tsx --out-dir lib --no-comments"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -90,5 +90,6 @@
     "redux-thunk": "^2.2.0",
     "typescript": "^3.9.5"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

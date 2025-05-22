@@ -1,10 +1,11 @@
 
-import { autobind } from 'core-decorators';
+import { autobind } from './decorators';
 import { DefaultOptions, PER_SECOND, Event, Events } from './const';
 import {  IPartialOptions, IEvents, IDimension, IOptions, HTMLAttribute, IEventType, IContainer } from './interface';
 import { getDocumentValue  } from './utils';
 import Scroll from './scroll';
-import { throttle, merge } from 'lodash';
+import throttle from 'lodash/throttle';
+import merge from 'lodash/merge';
 
 /**
  * Todo
@@ -215,14 +216,11 @@ class Core {
     // 触发了下拉刷新或者上拉加载更多，即退出
     if (this.isPullingUp || this.isPullingDown || this.executingScrollTo || direction < 0) return;
 
-    // if (!this.options.up.enable && !this.isFinishUp && scrollHeight > 0) {
     if (!this.isFinishUp && scrollHeight > 0) {
       const toBottom = scrollHeight - clientHeight - scrollTop;
-      if (toBottom <= this.options.up.offset) {
-        // 满足上拉加载
-        if (!this.isPullingUp && !this.isFinishUp) {
-          this.pullUp();
-        }
+      // 满足上拉加载条件
+      if (toBottom <= this.options.up.offset && !this.isPullingUp) {
+        this.pullUp();
       }
     }
   }
@@ -237,62 +235,67 @@ class Core {
   private touchmove(e: TouchEvent) {
     this.events[Event.TOUCHMOVE]?.(e);
 
-    // if (this.startTop !== null && this.startTop <= 0 && !this.isPullingDown && !this.options.down.enable) {
-    if (this.startTop !== null && this.startTop <= 0 && !this.isPullingDown) {
-      const curX = this.getTouchPosition(e, 'X');
-      const curY = this.getTouchPosition(e, 'Y');
+    // Check if we're at the top and not already pulling down
+    if (this.startTop === null || this.startTop > 0 || this.isPullingDown) {
+      return;
+    }
+    
+    const curX = this.getTouchPosition(e, 'X');
+    const curY = this.getTouchPosition(e, 'Y');
 
-      // 手指滑出屏幕触发刷新
-      if (curY > this.documentClientHeight) {
-        return this.touchend(e);
-      }
+    // If finger moved out of screen, end touch
+    if (curY > this.documentClientHeight) {
+      return this.touchend(e);
+    }
 
-      if (!this.preY) this.preY = curY;
+    if (!this.preY) this.preY = curY;
 
-      const diff = curY - this.preY;
+    const diff = curY - this.preY;
+    this.preY = curY;
 
-      this.preY = curY;
+    const moveY = curY - this.startY;
+    const moveX = curX - this.startX;
 
-      const moveY = curY - this.startY;
-      const moveX = curX - this.startX;
+    // Determine if this is a horizontal scroll
+    if (this.options.isLockX && !this.isHorizontal) {
+      this.isHorizontal = Math.abs(moveX) > Math.abs(moveY);
+    }
 
-      if (this.options.isLockX && !this.isHorizontal) {
-        this.isHorizontal = Math.abs(moveX) > Math.abs(moveY);
-      }
+    // If horizontal scroll, prevent default and exit
+    if (this.isHorizontal) {
+      e.preventDefault();
+      return;
+    }
 
-      if (this.isHorizontal) {
-        return e.preventDefault();
-      }
+    // If already bouncing, exit
+    if (this.isBouncing) return;
 
-      if (this.isBouncing) return;
+    // Handle pull down
+    if (moveY > 0) {
+      this.isMoveDown = true;
 
-      if (moveY > 0) {
-        this.isMoveDown = true;
+      // Prevent browser's default scroll since we're handling it
+      e.preventDefault();
 
-        // 阻止浏览器的默认滚动事件，因为这时候只需要执行动画即可
-        e.preventDefault();
+      const { offset, dampRateBegin, dampRate } = this.options.down;
+      
+      // Apply damping rate based on pull distance
+      const rate = this.pullingDownHeight < offset ? dampRateBegin : dampRate;
 
-        const { offset, dampRateBegin, dampRate } = this.options.down;
-        let rate = 1;
-        if (this.pullingDownHeight < offset) {
-          rate = dampRateBegin;
-        } else {
-          rate = dampRate;
-        }
-
-        // 添加阻尼系数
-        if (diff >= 0) {
-          this.pullingDownHeight += diff * rate;
-        } else {
-          this.pullingDownHeight = Math.max(0, this.pullingDownHeight + (diff * rate));
-        }
-
-        this.events[Event.PULLING_DOWN]?.(this.pullingDownHeight);
-
-        this.translateContentDom(this.pullingDownHeight);
+      // Calculate new pull height with damping
+      if (diff >= 0) {
+        this.pullingDownHeight += diff * rate;
       } else {
-        this.isBouncing = true;
+        this.pullingDownHeight = Math.max(0, this.pullingDownHeight + (diff * rate));
       }
+
+      // Trigger pulling down event
+      this.events[Event.PULLING_DOWN]?.(this.pullingDownHeight);
+
+      // Update the DOM
+      this.translateContentDom(this.pullingDownHeight);
+    } else {
+      this.isBouncing = true;
     }
   }
 
@@ -355,22 +358,38 @@ class Core {
 
     // 改变wrap的位置（css动画）
     const wrap = this.content;
-
-    wrap.style.webkitTransitionDuration = `${duration}ms`;
-    wrap.style.transitionDuration = `${duration}ms`;
-    wrap.style.webkitTransform = `translate(0px, ${y}px) translateZ(0px)`;
-    wrap.style.transform = `translate(0px, ${y}px) translateZ(0px)`;
+    
+    if (duration === 0) {
+      // For immediate changes, apply directly
+      wrap.style.webkitTransitionDuration = '0ms';
+      wrap.style.transitionDuration = '0ms';
+      wrap.style.webkitTransform = `translate3d(0px, ${y}px, 0px)`;
+      wrap.style.transform = `translate3d(0px, ${y}px, 0px)`;
+      return;
+    }
+    
+    // For animated changes, use requestAnimationFrame for smoother animation
+    requestAnimationFrame(() => {
+      wrap.style.webkitTransitionDuration = `${duration}ms`;
+      wrap.style.transitionDuration = `${duration}ms`;
+      wrap.style.webkitTransform = `translate3d(0px, ${y}px, 0px)`;
+      wrap.style.transform = `translate3d(0px, ${y}px, 0px)`;
+    });
   }
 
   private loadFullScreen() {
-    // && wrapper.scrollHeight - options.loadingHeight <= getClientHeightByDom(wrapper) scrollHeight是网页内容高度（最小值是clientHeight），需要减去loading的高度50
-    if (
-      // !this.options.up.isLock
-      this.loadFullCnt <= this.options.up.loadFull.loadCount
-      && this.getElementValue('scrollTop') === 0 // 避免无法计算高度时无限加载
-      && this.getElementValue('scrollHeight') > 0
-      && this.getElementValue('scrollHeight') <= this.getElementValue('clientHeight')
-    ) {
+    // Check if content is smaller than container and we need to load more
+    const scrollTop = this.getElementValue('scrollTop');
+    const scrollHeight = this.getElementValue('scrollHeight');
+    const clientHeight = this.getElementValue('clientHeight');
+    
+    const shouldLoadMore = 
+      this.loadFullCnt <= this.options.up.loadFull.loadCount && 
+      scrollTop === 0 && 
+      scrollHeight > 0 &&
+      scrollHeight <= clientHeight;
+      
+    if (shouldLoadMore) {
       clearTimeout(this.loadFullTimer);
       this.loadFullTimer = window.setTimeout(() => {
         if (this.loadFullCnt < this.options.up.loadFull.loadCount) {
@@ -381,8 +400,8 @@ class Core {
           this.endPullUp(true);
         }
       }, this.options.up.loadFull.time);
-    } else {
-      if (this.loadFullCnt) this.loadFullCnt = 0;
+    } else if (this.loadFullCnt) {
+      this.loadFullCnt = 0;
     }
   }
 

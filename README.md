@@ -6,6 +6,15 @@
 
 这是一个上拉加载，下拉刷新的组件。在 Android 和 RN（React Native）里称为 滚动容器（ScrollView）。这个项目是基于CRA（Create React App）搭建的，代码全部采用 TS（TypeScript）编写，核心引擎部分不掺杂框架代码，如果使用React，Vue，Angular，或者原生JS的，可以自己扩展，目前只支持React版本。在设计之初，借鉴了 minirefresh 和 better-scroll 的设计，它们都是很不错的滚动组件。
 
+## 优化更新
+
+最新版本包含以下优化：
+- 减少了包体积，移除了不必要的依赖
+- 使用了更高效的动画处理
+- 优化了滚动事件处理，提高了性能
+- 修复了上拉重试功能
+- 改进了错误处理机制
+
 ## 快速开始
 
 ```
